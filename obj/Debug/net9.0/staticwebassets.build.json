@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "p3y7L3Jnu46EOWQPauvdRcauKmIFBdcjfRCEnbq+iuY=",
+  "Source": "RegistrationManagementAPI",
+  "BasePath": "_content/RegistrationManagementAPI",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
