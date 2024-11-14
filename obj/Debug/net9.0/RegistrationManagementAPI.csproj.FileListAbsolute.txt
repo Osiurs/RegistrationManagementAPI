@@ -138,3 +138,4 @@ C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\obj\Debug\net9.0\RegistrationManagementAPI.pdb
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\obj\Debug\net9.0\RegistrationManagementAPI.genruntimeconfig.cache
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\obj\Debug\net9.0\ref\RegistrationManagementAPI.dll
+C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\obj\Debug\net9.0\RegistrationManagementAPI.sourcelink.json
