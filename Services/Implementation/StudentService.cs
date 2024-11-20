@@ -1,63 +1,133 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Data;  // Giả định DbContext của bạn nằm trong thư mục Data
+using RegistrationManagementAPI.DTOs;
+using RegistrationManagementAPI.Repositories;
+using System.Threading.Tasks;
 
 namespace RegistrationManagementAPI.Services
 {
     public class StudentService : IStudentService
     {
-        private readonly NVHTNQ10DbContext _context;
+        private readonly IStudentRepository _studentRepository;
 
-        public StudentService(NVHTNQ10DbContext context)
+        public StudentService(IStudentRepository studentRepository)
         {
-            _context = context;
+            _studentRepository = studentRepository;
         }
 
-        public async Task<IEnumerable<Student>> GetAllStudentsAsync()
+        public async Task<PaginatedList<StudentDTO>> GetStudentsPagedAsync(int pageNumber, int pageSize, string sortBy, bool isDescending)
         {
-            return await _context.Students.ToListAsync();
+            var students = _studentRepository.GetAllQueryable();
+
+            students = isDescending
+                ? students.OrderByDescending(s => EF.Property<object>(s, sortBy))
+                : students.OrderBy(s => EF.Property<object>(s, sortBy));
+
+            return await PaginatedList<StudentDTO>.CreateAsync(
+                students.Select(s => new StudentDTO
+                {
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    DateOfBirth = s.DateOfBirth,
+                    PhoneNumber = s.PhoneNumber,
+                    Email = s.Email,
+                    Address = s.Address,
+                    ParentName = s.ParentName,
+                    ParentPhoneNumber = s.ParentPhoneNumber
+                }),
+                pageNumber, pageSize
+            );
         }
 
-        public async Task<Student> GetStudentByIdAsync(int id)
+        public async Task<StudentDTO> GetStudentByIdAsync(int id)
         {
-            return await _context.Students.FindAsync(id);
-        }
+            var student = await _studentRepository.GetStudentByIdAsync(id);
+            if (student == null) return null;
 
-        public async Task<Student> AddStudentAsync(Student student)
-        {
-            _context.Students.Add(student);
-            await _context.SaveChangesAsync();
-            return student;
-        }
-
-        public async Task<Student> UpdateStudentAsync(int id, Student student)
-        {
-            var existingStudent = await _context.Students.FindAsync(id);
-            if (existingStudent == null)
+            return new StudentDTO
             {
-                return null;
-            }
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                DateOfBirth = student.DateOfBirth,
+                PhoneNumber = student.PhoneNumber,
+                Email = student.Email,
+                Address = student.Address,
+                ParentName = student.ParentName,
+                ParentPhoneNumber = student.ParentPhoneNumber
+            };
+        }
 
-            existingStudent.FirstName = student.FirstName;
-            existingStudent.LastName = student.LastName;
-            existingStudent.PhoneNumber = student.PhoneNumber;
-            existingStudent.Email = student.Email;
-            existingStudent.ParentName = student.ParentName;
+        public async Task<StudentDTO> AddStudentAsync(StudentDTO studentDTO)
+{
+    try
+    {
+        var student = new Student
+        {
+            FirstName = studentDTO.FirstName,
+            LastName = studentDTO.LastName,
+            DateOfBirth = studentDTO.DateOfBirth,
+            PhoneNumber = studentDTO.PhoneNumber,
+            Email = studentDTO.Email,
+            Address = studentDTO.Address,
+            ParentName = studentDTO.ParentName,
+            ParentPhoneNumber = studentDTO.ParentPhoneNumber
+        };
 
-            await _context.SaveChangesAsync();
-            return existingStudent;
+        var newStudent = await _studentRepository.AddStudentAsync(student);
+
+        return new StudentDTO
+        {
+            FirstName = newStudent.FirstName,
+            LastName = newStudent.LastName,
+            DateOfBirth = newStudent.DateOfBirth,
+            PhoneNumber = newStudent.PhoneNumber,
+            Email = newStudent.Email,
+            Address = newStudent.Address,
+            ParentName = newStudent.ParentName,
+            ParentPhoneNumber = newStudent.ParentPhoneNumber
+        };
+    }
+    catch (Exception ex)
+    {
+        // Log the exception (or use any logging framework you are using)
+        Console.WriteLine($"Error adding student: {ex.Message}");
+        throw;  // Re-throw the exception to be handled at a higher level
+    }
+}
+
+
+        public async Task<StudentDTO> UpdateStudentAsync(int id, StudentDTO studentDTO)
+        {
+            var student = await _studentRepository.GetStudentByIdAsync(id);
+            if (student == null) return null;
+
+            student.FirstName = studentDTO.FirstName;
+            student.LastName = studentDTO.LastName;
+            student.DateOfBirth = studentDTO.DateOfBirth;
+            student.PhoneNumber = studentDTO.PhoneNumber;
+            student.Email = studentDTO.Email;
+            student.Address = studentDTO.Address;
+            student.ParentName = studentDTO.ParentName;
+            student.ParentPhoneNumber = studentDTO.ParentPhoneNumber;
+
+            var updatedStudent = await _studentRepository.UpdateStudentAsync(student);
+
+            return new StudentDTO
+            {
+                FirstName = updatedStudent.FirstName,
+                LastName = updatedStudent.LastName,
+                DateOfBirth = updatedStudent.DateOfBirth,
+                PhoneNumber = updatedStudent.PhoneNumber,
+                Email = updatedStudent.Email,
+                Address = updatedStudent.Address,
+                ParentName = updatedStudent.ParentName,
+                ParentPhoneNumber = updatedStudent.ParentPhoneNumber
+            };
         }
 
         public async Task DeleteStudentAsync(int id)
         {
-            var student = await _context.Students.FindAsync(id);
-            if (student != null)
-            {
-                _context.Students.Remove(student);
-                await _context.SaveChangesAsync();
-            }
+            await _studentRepository.DeleteStudentAsync(id);
         }
     }
 }

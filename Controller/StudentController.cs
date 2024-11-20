@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using RegistrationManagementAPI.Services;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
+using RegistrationManagementAPI.Services;
+using System.Threading.Tasks;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -15,15 +17,17 @@ namespace RegistrationManagementAPI.Controllers
             _studentService = studentService;
         }
 
-        // Lấy danh sách tất cả học viên
         [HttpGet]
-        public async Task<IActionResult> GetAllStudents()
+        public async Task<IActionResult> GetAllStudents(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string sortBy = "FirstName",
+            [FromQuery] bool isDescending = false)
         {
-            var students = await _studentService.GetAllStudentsAsync();
+            var students = await _studentService.GetStudentsPagedAsync(pageNumber, pageSize, sortBy, isDescending);
             return Ok(students);
         }
 
-        // Lấy thông tin chi tiết của một học viên theo ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudentById(int id)
         {
@@ -35,29 +39,32 @@ namespace RegistrationManagementAPI.Controllers
             return Ok(student);
         }
 
-        // Thêm học viên mới
         [HttpPost]
-        public async Task<IActionResult> AddStudent([FromBody] Student student)
+        public async Task<IActionResult> AddStudent([FromBody] StudentDTO studentDTO)
         {
             if (!ModelState.IsValid)
             {
+                // Log the model validation errors
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                            .Select(e => e.ErrorMessage).ToList();
+                Console.WriteLine("Model validation errors: " + string.Join(", ", errors));
                 return BadRequest(ModelState);
             }
 
-            var newStudent = await _studentService.AddStudentAsync(student);
+            var newStudent = await _studentService.AddStudentAsync(studentDTO);
             return CreatedAtAction(nameof(GetStudentById), new { id = newStudent.StudentId }, newStudent);
         }
 
-        // Cập nhật thông tin học viên
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student student)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDTO studentDTO)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var updatedStudent = await _studentService.UpdateStudentAsync(id, student);
+            var updatedStudent = await _studentService.UpdateStudentAsync(id, studentDTO);
             if (updatedStudent == null)
             {
                 return NotFound(new { message = "Student not found" });
@@ -65,7 +72,6 @@ namespace RegistrationManagementAPI.Controllers
             return Ok(updatedStudent);
         }
 
-        // Xóa học viên
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {

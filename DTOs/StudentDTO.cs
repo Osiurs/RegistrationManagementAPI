@@ -1,6 +1,6 @@
-namespace RegistrationManagementAPI.Entities
+namespace RegistrationManagementAPI.DTOs
 {
-    public class Student
+    public class StudentDTO
     {
         public int StudentId { get; set; }
         public string FirstName { get; set; }

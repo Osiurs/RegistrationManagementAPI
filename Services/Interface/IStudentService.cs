@@ -1,15 +1,14 @@
-using System.Collections.Generic;
+using RegistrationManagementAPI.DTOs;
 using System.Threading.Tasks;
-using RegistrationManagementAPI.Entities;
 
 namespace RegistrationManagementAPI.Services
 {
     public interface IStudentService
     {
-        Task<IEnumerable<Student>> GetAllStudentsAsync();
-        Task<Student> GetStudentByIdAsync(int id);
-        Task<Student> AddStudentAsync(Student student);
-        Task<Student> UpdateStudentAsync(int id, Student student);
+        Task<PaginatedList<StudentDTO>> GetStudentsPagedAsync(int pageNumber, int pageSize, string sortBy, bool isDescending);
+        Task<StudentDTO> GetStudentByIdAsync(int id);
+        Task<StudentDTO> AddStudentAsync(StudentDTO studentDTO);
+        Task<StudentDTO> UpdateStudentAsync(int id, StudentDTO studentDTO);
         Task DeleteStudentAsync(int id);
     }
 }
