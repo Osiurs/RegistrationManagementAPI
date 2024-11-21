@@ -26,6 +26,7 @@ namespace RegistrationManagementAPI.Services
             return await PaginatedList<StudentDTO>.CreateAsync(
                 students.Select(s => new StudentDTO
                 {
+                    StudentId = s.StudentId,
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     DateOfBirth = s.DateOfBirth,
@@ -46,6 +47,7 @@ namespace RegistrationManagementAPI.Services
 
             return new StudentDTO
             {
+                StudentId = student.StudentId,
                 FirstName = student.FirstName,
                 LastName = student.LastName,
                 DateOfBirth = student.DateOfBirth,
@@ -63,6 +65,7 @@ namespace RegistrationManagementAPI.Services
     {
         var student = new Student
         {
+            StudentId = studentDTO.StudentId,
             FirstName = studentDTO.FirstName,
             LastName = studentDTO.LastName,
             DateOfBirth = studentDTO.DateOfBirth,

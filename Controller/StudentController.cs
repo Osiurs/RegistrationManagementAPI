@@ -21,7 +21,7 @@ namespace RegistrationManagementAPI.Controllers
         public async Task<IActionResult> GetAllStudents(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] string sortBy = "FirstName",
+            [FromQuery] string sortBy = "StudentId",
             [FromQuery] bool isDescending = false)
         {
             var students = await _studentService.GetStudentsPagedAsync(pageNumber, pageSize, sortBy, isDescending);

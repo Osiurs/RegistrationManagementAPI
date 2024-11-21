@@ -2,8 +2,11 @@ using RegistrationManagementAPI.Services;
 using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.Repositories;  // Make sure this is included if the repo is in a separate namespace
 using Microsoft.EntityFrameworkCore;
+using RegistrationManagementAPI.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Add services to the container.
 // Add DbContext (assuming you're using Entity Framework)
@@ -24,6 +27,8 @@ builder.Services.AddControllers();
 // Add Swagger if needed (for API documentation)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 
