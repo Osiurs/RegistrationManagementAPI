@@ -1,8 +1,6 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Services;
+using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -11,97 +9,77 @@ namespace RegistrationManagementAPI.Controllers
     public class CourseController : ControllerBase
     {
         private readonly ICourseService _courseService;
-        private readonly IMapper _mapper;
 
-        public CourseController(ICourseService courseService, IMapper mapper)
+        public CourseController(ICourseService courseService)
         {
             _courseService = courseService;
-            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllCourses()
         {
             var courses = await _courseService.GetAllCoursesAsync();
-            var courseDTOs = _mapper.Map<IEnumerable<CourseDTO>>(courses);
-            return Ok(courseDTOs);
+            return Ok(courses);
         }
 
-        /// <summary>
-        /// Lấy thông tin chi tiết của một khóa học theo ID.
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCourseById(int id)
         {
-            var course = await _courseService.GetCourseByIdAsync(id);
-            if (course == null)
+            try
             {
-                return NotFound(new { message = "Course not found" });
+                var course = await _courseService.GetCourseByIdAsync(id);
+                return Ok(course);
             }
-
-            var courseDTO = _mapper.Map<CourseDTO>(course);
-            return Ok(courseDTO);
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Thêm khóa học mới.
-        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddCourse([FromBody] CourseDTO courseDTO)
+        public async Task<IActionResult> AddCourse([FromBody] Course course)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                var newCourse = await _courseService.AddCourseAsync(course);
+                return CreatedAtAction(nameof(GetCourseById), new { id = newCourse.CourseId }, newCourse);
             }
-
-            var course = _mapper.Map<Course>(courseDTO);
-            var newCourse = await _courseService.AddCourseAsync(course);
-            var newCourseDTO = _mapper.Map<CourseDTO>(newCourse);
-
-            return CreatedAtAction(nameof(GetCourseById), new { id = newCourseDTO.CourseId }, newCourseDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(int id, [FromBody] CourseDTO courseDTO)
+        public async Task<IActionResult> UpdateCourse(int id, [FromBody] Course course)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                await _courseService.UpdateCourseAsync(id, course);
+                return NoContent();
             }
-
-            // Kiểm tra sự tồn tại của khóa học
-            var existingCourse = await _courseService.GetCourseByIdAsync(id);
-            if (existingCourse == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound(new { message = "Course not found." });
+                return NotFound(new { message = ex.Message });
             }
-
-            // Chuyển DTO thành Entity (Course)
-            var updatedCourse = _mapper.Map(courseDTO, existingCourse);
-
-            // Gọi phương thức UpdateCourseAsync từ Service
-            await _courseService.UpdateCourseAsync(id, updatedCourse);
-
-            // Trả về thông tin khóa học đã được cập nhật
-            var updatedCourseDTO = _mapper.Map<CourseDTO>(updatedCourse);
-            return Ok(updatedCourseDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-
-        /// <summary>
-        /// Xóa khóa học.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
-            var existingCourse = await _courseService.GetCourseByIdAsync(id);
-            if (existingCourse == null)
+            try
             {
-                return NotFound(new { message = "Course not found" });
+                await _courseService.DeleteCourseAsync(id);
+                return NoContent();
             }
-
-            await _courseService.DeleteCourseAsync(id);
-            return NoContent();
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }

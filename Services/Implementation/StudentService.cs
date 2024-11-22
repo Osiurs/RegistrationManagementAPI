@@ -1,10 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.DTOs;
-using RegistrationManagementAPI.Repositories;
-using System.Threading.Tasks;
+using RegistrationManagementAPI.Repositories.Interface;
+using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class StudentService : IStudentService
     {
@@ -15,121 +13,61 @@ namespace RegistrationManagementAPI.Services
             _studentRepository = studentRepository;
         }
 
-        public async Task<PaginatedList<StudentDTO>> GetStudentsPagedAsync(int pageNumber, int pageSize, string sortBy, bool isDescending)
+        public async Task<IEnumerable<Student>> GetAllStudentsAsync()
         {
-            var students = _studentRepository.GetAllQueryable();
-
-            students = isDescending
-                ? students.OrderByDescending(s => EF.Property<object>(s, sortBy))
-                : students.OrderBy(s => EF.Property<object>(s, sortBy));
-
-            return await PaginatedList<StudentDTO>.CreateAsync(
-                students.Select(s => new StudentDTO
-                {
-                    StudentId = s.StudentId,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    DateOfBirth = s.DateOfBirth,
-                    PhoneNumber = s.PhoneNumber,
-                    Email = s.Email,
-                    Address = s.Address,
-                    ParentName = s.ParentName,
-                    ParentPhoneNumber = s.ParentPhoneNumber
-                }),
-                pageNumber, pageSize
-            );
+            return await _studentRepository.GetAllStudentsAsync();
         }
 
-        public async Task<StudentDTO> GetStudentByIdAsync(int id)
+        public async Task<Student> GetStudentByIdAsync(int id)
         {
             var student = await _studentRepository.GetStudentByIdAsync(id);
-            if (student == null) return null;
-
-            return new StudentDTO
+            if (student == null)
             {
-                StudentId = student.StudentId,
-                FirstName = student.FirstName,
-                LastName = student.LastName,
-                DateOfBirth = student.DateOfBirth,
-                PhoneNumber = student.PhoneNumber,
-                Email = student.Email,
-                Address = student.Address,
-                ParentName = student.ParentName,
-                ParentPhoneNumber = student.ParentPhoneNumber
-            };
+                throw new InvalidOperationException("Student not found.");
+            }
+            return student;
         }
 
-        public async Task<StudentDTO> AddStudentAsync(StudentDTO studentDTO)
-{
-    try
-    {
-        var student = new Student
+        public async Task<Student> AddStudentAsync(Student student)
         {
-            StudentId = studentDTO.StudentId,
-            FirstName = studentDTO.FirstName,
-            LastName = studentDTO.LastName,
-            DateOfBirth = studentDTO.DateOfBirth,
-            PhoneNumber = studentDTO.PhoneNumber,
-            Email = studentDTO.Email,
-            Address = studentDTO.Address,
-            ParentName = studentDTO.ParentName,
-            ParentPhoneNumber = studentDTO.ParentPhoneNumber
-        };
-
-        var newStudent = await _studentRepository.AddStudentAsync(student);
-
-        return new StudentDTO
-        {
-            FirstName = newStudent.FirstName,
-            LastName = newStudent.LastName,
-            DateOfBirth = newStudent.DateOfBirth,
-            PhoneNumber = newStudent.PhoneNumber,
-            Email = newStudent.Email,
-            Address = newStudent.Address,
-            ParentName = newStudent.ParentName,
-            ParentPhoneNumber = newStudent.ParentPhoneNumber
-        };
-    }
-    catch (Exception ex)
-    {
-        // Log the exception (or use any logging framework you are using)
-        Console.WriteLine($"Error adding student: {ex.Message}");
-        throw;  // Re-throw the exception to be handled at a higher level
-    }
-}
-
-
-        public async Task<StudentDTO> UpdateStudentAsync(int id, StudentDTO studentDTO)
-        {
-            var student = await _studentRepository.GetStudentByIdAsync(id);
-            if (student == null) return null;
-
-            student.FirstName = studentDTO.FirstName;
-            student.LastName = studentDTO.LastName;
-            student.DateOfBirth = studentDTO.DateOfBirth;
-            student.PhoneNumber = studentDTO.PhoneNumber;
-            student.Email = studentDTO.Email;
-            student.Address = studentDTO.Address;
-            student.ParentName = studentDTO.ParentName;
-            student.ParentPhoneNumber = studentDTO.ParentPhoneNumber;
-
-            var updatedStudent = await _studentRepository.UpdateStudentAsync(student);
-
-            return new StudentDTO
+            if (string.IsNullOrWhiteSpace(student.FirstName) || string.IsNullOrWhiteSpace(student.LastName))
             {
-                FirstName = updatedStudent.FirstName,
-                LastName = updatedStudent.LastName,
-                DateOfBirth = updatedStudent.DateOfBirth,
-                PhoneNumber = updatedStudent.PhoneNumber,
-                Email = updatedStudent.Email,
-                Address = updatedStudent.Address,
-                ParentName = updatedStudent.ParentName,
-                ParentPhoneNumber = updatedStudent.ParentPhoneNumber
-            };
+                throw new ArgumentException("First name and last name are required.");
+            }
+
+            var existingStudents = await _studentRepository.GetAllStudentsAsync();
+            if (existingStudents.Any(s => s.Email == student.Email))
+            {
+                throw new InvalidOperationException("Email already exists.");
+            }
+
+            return await _studentRepository.AddStudentAsync(student);
+        }
+
+        public async Task UpdateStudentAsync(int id, Student student)
+        {
+            var existingStudent = await _studentRepository.GetStudentByIdAsync(id);
+            if (existingStudent == null)
+            {
+                throw new InvalidOperationException("Student not found.");
+            }
+
+            existingStudent.FirstName = student.FirstName;
+            existingStudent.LastName = student.LastName;
+            existingStudent.Email = student.Email;
+            existingStudent.DateOfBirth = student.DateOfBirth;
+
+            await _studentRepository.UpdateStudentAsync(existingStudent);
         }
 
         public async Task DeleteStudentAsync(int id)
         {
+            var student = await _studentRepository.GetStudentByIdAsync(id);
+            if (student == null)
+            {
+                throw new InvalidOperationException("Student not found.");
+            }
+
             await _studentRepository.DeleteStudentAsync(id);
         }
     }

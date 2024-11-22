@@ -1,8 +1,6 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Services;
+using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -11,113 +9,77 @@ namespace RegistrationManagementAPI.Controllers
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationService _registrationService;
-        private readonly IMapper _mapper;
 
-        public RegistrationController(IRegistrationService registrationService, IMapper mapper)
+        public RegistrationController(IRegistrationService registrationService)
         {
             _registrationService = registrationService;
-            _mapper = mapper;
         }
 
-        /// <summary>
-        /// Lấy danh sách tất cả các đăng ký khóa học.
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllRegistrations()
         {
             var registrations = await _registrationService.GetAllRegistrationsAsync();
-            var registrationDTOs = _mapper.Map<IEnumerable<RegistrationDTO>>(registrations);
-            return Ok(registrationDTOs);
+            return Ok(registrations);
         }
 
-        /// <summary>
-        /// Lấy danh sách các đăng ký theo StudentId.
-        /// </summary>
-        [HttpGet("student/{studentId}")]
-        public async Task<IActionResult> GetRegistrationsByStudentId(int studentId)
-        {
-            var registrations = await _registrationService.GetRegistrationsByStudentIdAsync(studentId);
-            if (!registrations.Any())
-            {
-                return NotFound(new { message = "No registrations found for the student." });
-            }
-
-            var registrationDTOs = _mapper.Map<IEnumerable<RegistrationDTO>>(registrations);
-            return Ok(registrationDTOs);
-        }
-
-        /// <summary>
-        /// Lấy thông tin chi tiết một đăng ký theo ID.
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRegistrationById(int id)
         {
-            var registration = await _registrationService.GetRegistrationByIdAsync(id);
-            if (registration == null)
+            try
             {
-                return NotFound(new { message = "Registration not found." });
+                var registration = await _registrationService.GetRegistrationByIdAsync(id);
+                return Ok(registration);
             }
-
-            var registrationDTO = _mapper.Map<RegistrationDTO>(registration);
-            return Ok(registrationDTO);
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Thêm một đăng ký mới.
-        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddRegistration([FromBody] RegistrationDTO registrationDTO)
+        public async Task<IActionResult> AddRegistration([FromBody] Registration registration)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                var newRegistration = await _registrationService.AddRegistrationAsync(registration);
+                return CreatedAtAction(nameof(GetRegistrationById), new { id = newRegistration.RegistrationId }, newRegistration);
             }
-
-            var registration = _mapper.Map<Registration>(registrationDTO);
-            var newRegistration = await _registrationService.AddRegistrationAsync(registration);
-            var newRegistrationDTO = _mapper.Map<RegistrationDTO>(newRegistration);
-
-            return CreatedAtAction(nameof(GetRegistrationById), new { id = newRegistrationDTO.RegistrationId }, newRegistrationDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Cập nhật thông tin một đăng ký.
-        /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRegistration(int id, [FromBody] RegistrationDTO registrationDTO)
+        public async Task<IActionResult> UpdateRegistration(int id, [FromBody] Registration registration)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                await _registrationService.UpdateRegistrationAsync(id, registration);
+                return NoContent();
             }
-
-            var existingRegistration = await _registrationService.GetRegistrationByIdAsync(id);
-            if (existingRegistration == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound(new { message = "Registration not found." });
+                return NotFound(new { message = ex.Message });
             }
-
-            var updatedRegistration = _mapper.Map(registrationDTO, existingRegistration);
-            await _registrationService.UpdateRegistrationAsync(updatedRegistration);
-
-            var updatedRegistrationDTO = _mapper.Map<RegistrationDTO>(updatedRegistration);
-            return Ok(updatedRegistrationDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Xóa một đăng ký.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRegistration(int id)
         {
-            var existingRegistration = await _registrationService.GetRegistrationByIdAsync(id);
-            if (existingRegistration == null)
+            try
             {
-                return NotFound(new { message = "Registration not found." });
+                await _registrationService.DeleteRegistrationAsync(id);
+                return NoContent();
             }
-
-            await _registrationService.DeleteRegistrationAsync(id);
-            return NoContent();
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }

@@ -1,14 +1,14 @@
 using RegistrationManagementAPI.Entities;
 
-namespace RegistrationManagementAPI.Services.Interface
+namespace RegistrationManagementAPI.Repositories.Interface
 {
-    public interface ICourseService
+    public interface ICourseRepository
     {
         Task<IEnumerable<Course>> GetAllCoursesAsync();
         Task<Course> GetCourseByIdAsync(int id);
         Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(int teacherId);
         Task<Course> AddCourseAsync(Course course);
-        Task UpdateCourseAsync(int id, Course course);
+        Task UpdateCourseAsync(Course course);
         Task DeleteCourseAsync(int id);
     }
 }

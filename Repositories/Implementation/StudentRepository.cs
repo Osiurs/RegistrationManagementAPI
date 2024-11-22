@@ -1,10 +1,9 @@
-using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Data;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using RegistrationManagementAPI.Data;
+using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.Repositories.Interface;
 
-namespace RegistrationManagementAPI.Repositories
+namespace RegistrationManagementAPI.Repositories.Implementation
 {
     public class StudentRepository : IStudentRepository
     {
@@ -15,9 +14,9 @@ namespace RegistrationManagementAPI.Repositories
             _context = context;
         }
 
-        public IQueryable<Student> GetAllQueryable()
+        public async Task<IEnumerable<Student>> GetAllStudentsAsync()
         {
-            return _context.Students.AsQueryable();
+            return await _context.Students.ToListAsync();
         }
 
         public async Task<Student> GetStudentByIdAsync(int id)
@@ -32,11 +31,10 @@ namespace RegistrationManagementAPI.Repositories
             return student;
         }
 
-        public async Task<Student> UpdateStudentAsync(Student student)
+        public async Task UpdateStudentAsync(Student student)
         {
             _context.Students.Update(student);
             await _context.SaveChangesAsync();
-            return student;
         }
 
         public async Task DeleteStudentAsync(int id)

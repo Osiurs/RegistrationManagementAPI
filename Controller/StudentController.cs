@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.DTOs;
-using RegistrationManagementAPI.Services;
-using System.Threading.Tasks;
+using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -18,71 +16,70 @@ namespace RegistrationManagementAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllStudents(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string sortBy = "StudentId",
-            [FromQuery] bool isDescending = false)
+        public async Task<IActionResult> GetAllStudents()
         {
-            var students = await _studentService.GetStudentsPagedAsync(pageNumber, pageSize, sortBy, isDescending);
+            var students = await _studentService.GetAllStudentsAsync();
             return Ok(students);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetStudentById(int id)
         {
-            var student = await _studentService.GetStudentByIdAsync(id);
-            if (student == null)
+            try
             {
-                return NotFound(new { message = "Student not found" });
+                var student = await _studentService.GetStudentByIdAsync(id);
+                return Ok(student);
             }
-            return Ok(student);
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddStudent([FromBody] StudentDTO studentDTO)
+        public async Task<IActionResult> AddStudent([FromBody] Student student)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                // Log the model validation errors
-                var errors = ModelState.Values.SelectMany(v => v.Errors)
-                                            .Select(e => e.ErrorMessage).ToList();
-                Console.WriteLine("Model validation errors: " + string.Join(", ", errors));
-                return BadRequest(ModelState);
+                var newStudent = await _studentService.AddStudentAsync(student);
+                return CreatedAtAction(nameof(GetStudentById), new { id = newStudent.StudentId }, newStudent);
             }
-
-            var newStudent = await _studentService.AddStudentAsync(studentDTO);
-            return CreatedAtAction(nameof(GetStudentById), new { id = newStudent.StudentId }, newStudent);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDTO studentDTO)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] Student student)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                await _studentService.UpdateStudentAsync(id, student);
+                return NoContent();
             }
-
-            var updatedStudent = await _studentService.UpdateStudentAsync(id, studentDTO);
-            if (updatedStudent == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound(new { message = "Student not found" });
+                return NotFound(new { message = ex.Message });
             }
-            return Ok(updatedStudent);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var existingStudent = await _studentService.GetStudentByIdAsync(id);
-            if (existingStudent == null)
+            try
             {
-                return NotFound(new { message = "Student not found" });
+                await _studentService.DeleteStudentAsync(id);
+                return NoContent();
             }
-
-            await _studentService.DeleteStudentAsync(id);
-            return NoContent();
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }

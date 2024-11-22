@@ -1,30 +1,82 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Data;
+using RegistrationManagementAPI.Repositories.Interface;
+using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class ClassroomService : IClassroomService
     {
-        private readonly NVHTNQ10DbContext _context;
+        private readonly IClassroomRepository _classroomRepository;
 
-        public ClassroomService(NVHTNQ10DbContext context)
+        public ClassroomService(IClassroomRepository classroomRepository)
         {
-            _context = context;
+            _classroomRepository = classroomRepository;
         }
 
         public async Task<IEnumerable<Classroom>> GetAllClassroomsAsync()
         {
-            return await _context.Classrooms.ToListAsync();
+            return await _classroomRepository.GetAllClassroomsAsync();
+        }
+
+        public async Task<Classroom> GetClassroomByIdAsync(int id)
+        {
+            var classroom = await _classroomRepository.GetClassroomByIdAsync(id);
+            if (classroom == null)
+            {
+                throw new InvalidOperationException("Classroom not found.");
+            }
+            return classroom;
         }
 
         public async Task<Classroom> AddClassroomAsync(Classroom classroom)
         {
-            _context.Classrooms.Add(classroom);
-            await _context.SaveChangesAsync();
-            return classroom;
+            if (classroom.Capacity <= 0)
+            {
+                throw new ArgumentException("Classroom capacity must be greater than zero.");
+            }
+
+            if (string.IsNullOrWhiteSpace(classroom.RoomNumber))
+            {
+                throw new ArgumentException("Room number is required.");
+            }
+
+            return await _classroomRepository.AddClassroomAsync(classroom);
+        }
+
+        public async Task UpdateClassroomAsync(int id, Classroom classroom)
+        {
+            var existingClassroom = await _classroomRepository.GetClassroomByIdAsync(id);
+            if (existingClassroom == null)
+            {
+                throw new InvalidOperationException("Classroom not found.");
+            }
+
+            existingClassroom.RoomNumber = classroom.RoomNumber;
+            existingClassroom.Capacity = classroom.Capacity;
+            existingClassroom.Equipment = classroom.Equipment;
+
+            await _classroomRepository.UpdateClassroomAsync(existingClassroom);
+        }
+
+        public async Task DeleteClassroomAsync(int id)
+        {
+            var classroom = await _classroomRepository.GetClassroomByIdAsync(id);
+            if (classroom == null)
+            {
+                throw new InvalidOperationException("Classroom not found.");
+            }
+
+            await _classroomRepository.DeleteClassroomAsync(id);
+        }
+
+        public async Task<IEnumerable<Classroom>> GetClassroomsWithEquipmentAsync(string equipment)
+        {
+            if (string.IsNullOrWhiteSpace(equipment))
+            {
+                throw new ArgumentException("Equipment is required.");
+            }
+
+            return await _classroomRepository.GetClassroomsWithEquipmentAsync(equipment);
         }
     }
 }

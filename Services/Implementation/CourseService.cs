@@ -1,43 +1,59 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Data;
+using RegistrationManagementAPI.Repositories.Interface;
+using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class CourseService : ICourseService
     {
-        private readonly NVHTNQ10DbContext _context;
+        private readonly ICourseRepository _courseRepository;
 
-        public CourseService(NVHTNQ10DbContext context)
+        public CourseService(ICourseRepository courseRepository)
         {
-            _context = context;
+            _courseRepository = courseRepository;
         }
 
         public async Task<IEnumerable<Course>> GetAllCoursesAsync()
         {
-            return await _context.Courses.Include(c => c.Teacher).ToListAsync();
+            return await _courseRepository.GetAllCoursesAsync();
         }
 
         public async Task<Course> GetCourseByIdAsync(int id)
         {
-            return await _context.Courses.Include(c => c.Teacher).FirstOrDefaultAsync(c => c.CourseId == id);
+            var course = await _courseRepository.GetCourseByIdAsync(id);
+            if (course == null)
+            {
+                throw new InvalidOperationException("Course not found.");
+            }
+            return course;
+        }
+
+        public async Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(int teacherId)
+        {
+            return await _courseRepository.GetCoursesByTeacherIdAsync(teacherId);
         }
 
         public async Task<Course> AddCourseAsync(Course course)
         {
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
-            return course;
+            if (course.StartDate >= course.EndDate)
+            {
+                throw new ArgumentException("Start date must be earlier than end date.");
+            }
+
+            if (course.Fee <= 0)
+            {
+                throw new ArgumentException("Fee must be greater than zero.");
+            }
+
+            return await _courseRepository.AddCourseAsync(course);
         }
 
-        public async Task<Course> UpdateCourseAsync(int id, Course course)
+        public async Task UpdateCourseAsync(int id, Course course)
         {
-            var existingCourse = await _context.Courses.FindAsync(id);
+            var existingCourse = await _courseRepository.GetCourseByIdAsync(id);
             if (existingCourse == null)
             {
-                return null;
+                throw new InvalidOperationException("Course not found.");
             }
 
             existingCourse.CourseName = course.CourseName;
@@ -45,19 +61,20 @@ namespace RegistrationManagementAPI.Services
             existingCourse.StartDate = course.StartDate;
             existingCourse.EndDate = course.EndDate;
             existingCourse.Fee = course.Fee;
+            existingCourse.TeacherId = course.TeacherId;
 
-            await _context.SaveChangesAsync();
-            return existingCourse;
+            await _courseRepository.UpdateCourseAsync(existingCourse);
         }
 
         public async Task DeleteCourseAsync(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
-            if (course != null)
+            var course = await _courseRepository.GetCourseByIdAsync(id);
+            if (course == null)
             {
-                _context.Courses.Remove(course);
-                await _context.SaveChangesAsync();
+                throw new InvalidOperationException("Course not found.");
             }
+
+            await _courseRepository.DeleteCourseAsync(id);
         }
     }
 }

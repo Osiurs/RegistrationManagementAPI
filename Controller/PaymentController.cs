@@ -1,8 +1,6 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Entities;
-using RegistrationManagementAPI.Services;
+using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -11,113 +9,77 @@ namespace RegistrationManagementAPI.Controllers
     public class PaymentController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private readonly IMapper _mapper;
 
-        public PaymentController(IPaymentService paymentService, IMapper mapper)
+        public PaymentController(IPaymentService paymentService)
         {
             _paymentService = paymentService;
-            _mapper = mapper;
         }
 
-        /// <summary>
-        /// Lấy danh sách tất cả các khoản thanh toán.
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetAllPayments()
         {
             var payments = await _paymentService.GetAllPaymentsAsync();
-            var paymentDTOs = _mapper.Map<IEnumerable<PaymentDTO>>(payments);
-            return Ok(paymentDTOs);
+            return Ok(payments);
         }
 
-        /// <summary>
-        /// Lấy danh sách các khoản thanh toán của một học viên.
-        /// </summary>
-        [HttpGet("student/{studentId}")]
-        public async Task<IActionResult> GetPaymentsByStudentId(int studentId)
-        {
-            var payments = await _paymentService.GetPaymentsByStudentIdAsync(studentId);
-            if (!payments.Any())
-            {
-                return NotFound(new { message = "No payments found for the student." });
-            }
-
-            var paymentDTOs = _mapper.Map<IEnumerable<PaymentDTO>>(payments);
-            return Ok(paymentDTOs);
-        }
-
-        /// <summary>
-        /// Lấy chi tiết một khoản thanh toán theo ID.
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetPaymentById(int id)
         {
-            var payment = await _paymentService.GetPaymentByIdAsync(id);
-            if (payment == null)
+            try
             {
-                return NotFound(new { message = "Payment not found." });
+                var payment = await _paymentService.GetPaymentByIdAsync(id);
+                return Ok(payment);
             }
-
-            var paymentDTO = _mapper.Map<PaymentDTO>(payment);
-            return Ok(paymentDTO);
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Thêm một khoản thanh toán mới.
-        /// </summary>
         [HttpPost]
-        public async Task<IActionResult> AddPayment([FromBody] PaymentDTO paymentDTO)
+        public async Task<IActionResult> AddPayment([FromBody] Payment payment)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                var newPayment = await _paymentService.AddPaymentAsync(payment);
+                return CreatedAtAction(nameof(GetPaymentById), new { id = newPayment.PaymentId }, newPayment);
             }
-
-            var payment = _mapper.Map<Payment>(paymentDTO);
-            var newPayment = await _paymentService.AddPaymentAsync(payment);
-            var newPaymentDTO = _mapper.Map<PaymentDTO>(newPayment);
-
-            return CreatedAtAction(nameof(GetPaymentById), new { id = newPaymentDTO.PaymentId }, newPaymentDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Cập nhật thông tin một khoản thanh toán.
-        /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePayment(int id, [FromBody] PaymentDTO paymentDTO)
+        public async Task<IActionResult> UpdatePayment(int id, [FromBody] Payment payment)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                await _paymentService.UpdatePaymentAsync(id, payment);
+                return NoContent();
             }
-
-            var existingPayment = await _paymentService.GetPaymentByIdAsync(id);
-            if (existingPayment == null)
+            catch (InvalidOperationException ex)
             {
-                return NotFound(new { message = "Payment not found." });
+                return NotFound(new { message = ex.Message });
             }
-
-            var updatedPayment = _mapper.Map(paymentDTO, existingPayment);
-            await _paymentService.UpdatePaymentAsync(updatedPayment);
-
-            var updatedPaymentDTO = _mapper.Map<PaymentDTO>(updatedPayment);
-            return Ok(updatedPaymentDTO);
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
-        /// <summary>
-        /// Xóa một khoản thanh toán.
-        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePayment(int id)
         {
-            var existingPayment = await _paymentService.GetPaymentByIdAsync(id);
-            if (existingPayment == null)
+            try
             {
-                return NotFound(new { message = "Payment not found." });
+                await _paymentService.DeletePaymentAsync(id);
+                return NoContent();
             }
-
-            await _paymentService.DeletePaymentAsync(id);
-            return NoContent();
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
         }
     }
 }
