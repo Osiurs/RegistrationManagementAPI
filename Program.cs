@@ -1,4 +1,3 @@
-using RegistrationManagementAPI.Services;
 using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.Repositories.Implementation;
 using RegistrationManagementAPI.Repositories.Interface;
@@ -33,6 +32,8 @@ builder.Services.AddScoped<IClassroomService, ClassroomService>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Add controllers and other services
 builder.Services.AddControllers();

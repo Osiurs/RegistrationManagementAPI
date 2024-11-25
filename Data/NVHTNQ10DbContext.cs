@@ -16,5 +16,6 @@ namespace RegistrationManagementAPI.Data
         public DbSet<Schedule> Schedules { get; set; }
         public DbSet<Attendance> Attendances { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }
