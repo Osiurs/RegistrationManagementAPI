@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RegistrationManagementAPI.Data;
 
@@ -11,9 +12,11 @@ using RegistrationManagementAPI.Data;
 namespace RegistrationManagementAPI.Migrations
 {
     [DbContext(typeof(NVHTNQ10DbContext))]
-    partial class NVHTNQ10DbContextModelSnapshot : ModelSnapshot
+    [Migration("20241126112402_AddDepartmentTable")]
+    partial class AddDepartmentTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

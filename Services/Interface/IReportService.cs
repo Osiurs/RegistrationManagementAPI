@@ -6,5 +6,7 @@ namespace RegistrationManagementAPI.Services.Interface
     {
         Task<RevenueReportDTO> GenerateRevenueReportAsync();
         Task<RegistrationReportDTO> GenerateRegistrationReportAsync();
+        Task<IEnumerable<TuitionReportDTO>> GenerateTuitionReportAsync();
+        Task<IEnumerable<SalaryReportDTO>> GenerateSalaryReportAsync();
     }
 }

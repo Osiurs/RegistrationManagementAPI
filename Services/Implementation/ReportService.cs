@@ -2,7 +2,7 @@ using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services.Implementation
+namespace RegistrationManagementAPI.Services.Implementations
 {
     public class ReportService : IReportService
     {
@@ -15,28 +15,22 @@ namespace RegistrationManagementAPI.Services.Implementation
 
         public async Task<RevenueReportDTO> GenerateRevenueReportAsync()
         {
-            var totalRevenue = await _reportRepository.GetTotalRevenueAsync();
-            var totalPayments = await _reportRepository.GetTotalPaymentsAsync();
-
-            return new RevenueReportDTO
-            {
-                TotalRevenue = totalRevenue,
-                TotalPayments = totalPayments
-            };
+            return await _reportRepository.GetRevenueReportAsync();
         }
 
         public async Task<RegistrationReportDTO> GenerateRegistrationReportAsync()
         {
-            var totalRegistrations = await _reportRepository.GetTotalRegistrationsAsync();
-            var activeRegistrations = await _reportRepository.GetActiveRegistrationsAsync();
-            var completedRegistrations = await _reportRepository.GetCompletedRegistrationsAsync();
+            return await _reportRepository.GetRegistrationReportAsync();
+        }
 
-            return new RegistrationReportDTO
-            {
-                TotalRegistrations = totalRegistrations,
-                ActiveRegistrations = activeRegistrations,
-                CompletedRegistrations = completedRegistrations
-            };
+        public async Task<IEnumerable<TuitionReportDTO>> GenerateTuitionReportAsync()
+        {
+            return await _reportRepository.GetTuitionReportAsync();
+        }
+
+        public async Task<IEnumerable<SalaryReportDTO>> GenerateSalaryReportAsync()
+        {
+            return await _reportRepository.GetSalaryReportAsync();
         }
     }
 }

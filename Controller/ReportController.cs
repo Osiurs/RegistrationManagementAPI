@@ -27,5 +27,19 @@ namespace RegistrationManagementAPI.Controllers
             var report = await _reportService.GenerateRegistrationReportAsync();
             return Ok(report);
         }
+
+        [HttpGet("tuition")]
+        public async Task<IActionResult> GetTuitionReport()
+        {
+            var report = await _reportService.GenerateTuitionReportAsync();
+            return Ok(report);
+        }
+
+        [HttpGet("salary")]
+        public async Task<IActionResult> GetSalaryReport()
+        {
+            var report = await _reportService.GenerateSalaryReportAsync();
+            return Ok(report);
+        }
     }
 }
