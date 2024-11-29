@@ -12,5 +12,9 @@ namespace RegistrationManagementAPI.Entities
 
         public int ClassroomId { get; set; }
         public Classroom Classroom { get; set; }
+
+        public int TeacherId { get; set; }
+        public Teacher Teacher { get; set; }
+
     }
 }
