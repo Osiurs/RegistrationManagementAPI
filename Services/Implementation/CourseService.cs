@@ -40,9 +40,9 @@ namespace RegistrationManagementAPI.Services.Implementation
                 throw new ArgumentException("Start date must be earlier than end date.");
             }
 
-            if (course.Fee <= 0)
+            if (course.Price <= 0)
             {
-                throw new ArgumentException("Fee must be greater than zero.");
+                throw new ArgumentException("Price must be greater than zero.");
             }
 
             return await _courseRepository.AddCourseAsync(course);
@@ -60,7 +60,7 @@ namespace RegistrationManagementAPI.Services.Implementation
             existingCourse.Description = course.Description;
             existingCourse.StartDate = course.StartDate;
             existingCourse.EndDate = course.EndDate;
-            existingCourse.Fee = course.Fee;
+            existingCourse.Price = course.Price;
             existingCourse.TeacherId = course.TeacherId;
 
             await _courseRepository.UpdateCourseAsync(existingCourse);

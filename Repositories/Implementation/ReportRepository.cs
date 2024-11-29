@@ -3,7 +3,7 @@ using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 
-namespace RegistrationManagementAPI.Repositories.Implementations
+namespace RegistrationManagementAPI.Repositories.Implementation
 {
     public class ReportRepository : IReportRepository
     {
@@ -57,15 +57,17 @@ namespace RegistrationManagementAPI.Repositories.Implementations
         public async Task<IEnumerable<SalaryReportDTO>> GetSalaryReportAsync()
         {
             return await _context.Teachers
+                .Include(t => t.Courses) // Tải các khóa học liên quan của giáo viên
                 .Select(t => new SalaryReportDTO
                 {
                     TeacherId = t.TeacherId,
                     TeacherName = $"{t.FirstName} {t.LastName}",
-                    TotalSalary = t.Classes.Sum(c => c.Salary),
-                    PaidAmount = t.SalaryPayments.Sum(sp => sp.Amount),
-                    RemainingAmount = t.Classes.Sum(c => c.Salary) - t.SalaryPayments.Sum(sp => sp.Amount)
+                    TotalSalary = t.Courses.Sum(c => c.Price), // Tổng lương từ các khóa học
+                    PaidAmount = 0, // Nếu không có thông tin lương đã trả, mặc định là 0
+                    RemainingAmount = t.Courses.Sum(c => c.Price) // Số tiền còn lại = tổng lương
                 })
                 .ToListAsync();
         }
+
     }
 }

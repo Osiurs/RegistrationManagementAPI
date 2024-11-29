@@ -141,3 +141,4 @@ C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\obj\Debug\net9.0\RegistrationManagementAPI.sourcelink.json
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\bin\Debug\net9.0\AutoMapper.dll
 C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\bin\Debug\net9.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
+C:\Users\ADMIN\OneDrive\Documents\Intern\Signup System\RegistrationManagementAPI\bin\Debug\net9.0\BCrypt.Net-Next.dll

@@ -2,7 +2,7 @@ using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services.Implementations
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class ReportService : IReportService
     {
