@@ -16,11 +16,32 @@ namespace RegistrationManagementAPI.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDTO model)
+        [HttpPost("register/student")]
+        public async Task<IActionResult> RegisterStudent(RegisterStudentDTO model)
         {
-            var result = await _authService.RegisterAsync(model);
-            return Ok(new { message = result });
+            try
+            {
+                var result = await _authService.RegisterStudentAsync(model);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("register/teacher")]
+        public async Task<IActionResult> RegisterTeacher(RegisterTeacherDTO model)
+        {
+            try
+            {
+                var result = await _authService.RegisterTeacherAsync(model);
+                return Ok(new { message = result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPost("login")]
@@ -40,23 +61,6 @@ namespace RegistrationManagementAPI.Controllers
                 return BadRequest(new { message = "Failed to change password." });
 
             return Ok(new { message = "Password changed successfully." });
-        }
-
-        [HttpPost("request-password-reset")]
-        public async Task<IActionResult> RequestPasswordReset(RequestPasswordResetDTO model)
-        {
-            var token = await _authService.GeneratePasswordResetTokenAsync(model.UserName);
-            return Ok(new { token });
-        }
-
-        [HttpPost("confirm-password-reset")]
-        public async Task<IActionResult> ConfirmPasswordReset(ConfirmPasswordResetDTO model)
-        {
-            var result = await _authService.ResetPasswordAsync(model);
-            if (!result)
-                return BadRequest(new { message = "Invalid token or user not found." });
-
-            return Ok(new { message = "Password reset successful." });
         }
     }
 }

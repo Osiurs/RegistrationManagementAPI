@@ -37,6 +37,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
@@ -47,6 +48,8 @@ builder.Services.AddControllers();
 // Add Swagger if needed (for API documentation)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Logging.AddConsole();
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 

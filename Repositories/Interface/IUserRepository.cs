@@ -4,9 +4,9 @@ namespace RegistrationManagementAPI.Repositories.Interface
 {
     public interface IUserRepository
     {
-        Task<User> GetUserByUserNameAsync(string userName);
         Task<User> GetUserByIdAsync(int userId);
-        Task AddUserAsync(User user);
         Task UpdateUserAsync(User user);
+        Task AddUserAsync(User user);
+        Task<User> GetUserByUserNameAsync(string userName);
     }
 }
