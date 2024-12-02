@@ -4,9 +4,9 @@ namespace RegistrationManagementAPI.Services.Interface
 {
     public interface IAuthService
     {
-        Task<(string Token, string Role)> LoginAsync(LoginDTO model);
+        Task<object> LoginAsync(LoginDTO model); 
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordDTO model);
-        Task<string> RegisterStudentAsync(RegisterStudentDTO model);
-        Task<string> RegisterTeacherAsync(RegisterTeacherDTO model);
+        Task RegisterStudentAsync(RegisterStudentDTO model);
+        Task RegisterTeacherAsync(RegisterTeacherDTO model);
     }
 }

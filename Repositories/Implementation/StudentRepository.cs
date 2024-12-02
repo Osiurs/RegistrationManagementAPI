@@ -23,6 +23,16 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         {
             return await _context.Students.FindAsync(id);
         }
+        public async Task<Student> GetStudentByUserIdAsync(int userId)
+        {
+            return await _context.Students.FirstOrDefaultAsync(s => s.UserId == userId);
+        }
+
+
+        public async Task<Student> GetStudentByEmailAsync(string email)
+        {
+            return await _context.Students.FirstOrDefaultAsync(s => s.Email == email);
+        }
 
         public async Task<Student> AddStudentAsync(Student student)
         {

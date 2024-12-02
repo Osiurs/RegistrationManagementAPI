@@ -6,6 +6,7 @@ namespace RegistrationManagementAPI.Services.Interface
     {
         Task<IEnumerable<Student>> GetAllStudentsAsync();
         Task<Student> GetStudentByIdAsync(int id);
+        Task<Student> GetStudentByEmailAsync(string email);
         Task<Student> AddStudentAsync(Student student);
         Task UpdateStudentAsync(int id, Student student);
         Task DeleteStudentAsync(int id);

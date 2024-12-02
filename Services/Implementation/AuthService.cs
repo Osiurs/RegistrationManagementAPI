@@ -11,7 +11,7 @@ namespace RegistrationManagementAPI.Services.Implementation
 {
     public class AuthService : IAuthService
     {
-         private readonly IUserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IStudentRepository _studentRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly IConfiguration _configuration;
@@ -29,22 +29,108 @@ namespace RegistrationManagementAPI.Services.Implementation
             _configuration = configuration;
         }
 
-        public async Task<string> RegisterStudentAsync(RegisterStudentDTO model)
+        public async Task<object> LoginAsync(LoginDTO model)
+        {
+            if (string.IsNullOrWhiteSpace(model.UserName) || string.IsNullOrWhiteSpace(model.Password))
+            {
+                throw new Exception("Username and password are required.");
+            }
+
+            var user = await _userRepository.GetUserByUserNameAsync(model.UserName);
+
+            if (user == null)
+            {
+                throw new Exception("Invalid username or password.");
+            }
+
+            // Giải mã mật khẩu
+            var decodedPassword = DecodePasswordToken(user.Password);
+            if (decodedPassword != model.Password)
+            {
+                throw new Exception("Invalid username or password.");
+            }
+
+            // Lấy thông tin FirstName và LastName từ Student hoặc Teacher
+            string firstName = null;
+            string lastName = null;
+
+            if (user.Role == "Student")
+            {
+                var student = await _studentRepository.GetStudentByUserIdAsync(user.UserId);
+                if (student != null)
+                {
+                    firstName = student.FirstName;
+                    lastName = student.LastName;
+                }
+            }
+            else if (user.Role == "Teacher")
+            {
+                var teacher = await _teacherRepository.GetTeacherByUserIdAsync(user.UserId);
+                if (teacher != null)
+                {
+                    firstName = teacher.FirstName;
+                    lastName = teacher.LastName;
+                }
+            }
+            var token = GenerateToken(user);
+
+            // Trả về dữ liệu cần thiết
+            return new
+            {
+                UserID = user.UserId,
+                FirstName = firstName,
+                LastName = lastName,
+                Role = user.Role,
+                Token = token
+            };
+        }
+
+        private string GenerateToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]); // Khóa phải đủ dài
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Role, user.Role)
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+
+
+
+        public async Task RegisterStudentAsync(RegisterStudentDTO model)
         {
             var existingUser = await _userRepository.GetUserByUserNameAsync(model.UserName);
             if (existingUser != null)
-                throw new Exception("User already exists.");
+            {
+                throw new Exception("Username already exists.");
+            }
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+            var existingStudent = await _studentRepository.GetStudentByEmailAsync(model.Email);
+            if (existingStudent != null)
+            {
+                throw new Exception("A student with this email already exists.");
+            }
 
-            var newUser = new User
+            var hashedPassword = GeneratePasswordToken(model.Password);
+
+            var user = new User
             {
                 UserName = model.UserName,
                 Password = hashedPassword,
                 Role = "Student"
             };
 
-            await _userRepository.AddUserAsync(newUser);
+            user = await _userRepository.AddUserAsync(user);
 
             var student = new Student
             {
@@ -56,30 +142,36 @@ namespace RegistrationManagementAPI.Services.Implementation
                 Address = model.Address,
                 ParentName = model.ParentName,
                 ParentPhoneNumber = model.ParentPhoneNumber,
-                UserId = newUser.UserId
+                UserId = user.UserId
             };
 
             await _studentRepository.AddStudentAsync(student);
-
-            return "Student registered successfully.";
         }
 
-        public async Task<string> RegisterTeacherAsync(RegisterTeacherDTO model)
+        public async Task RegisterTeacherAsync(RegisterTeacherDTO model)
         {
             var existingUser = await _userRepository.GetUserByUserNameAsync(model.UserName);
             if (existingUser != null)
-                throw new Exception("User already exists.");
+            {
+                throw new Exception("Username already exists.");
+            }
 
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
+            var existingTeacher = await _teacherRepository.GetTeacherByEmailAsync(model.Email);
+            if (existingTeacher != null)
+            {
+                throw new Exception("A teacher with this email already exists.");
+            }
 
-            var newUser = new User
+            var hashedPassword = GeneratePasswordToken(model.Password);
+
+            var user = new User
             {
                 UserName = model.UserName,
                 Password = hashedPassword,
                 Role = "Teacher"
             };
 
-            await _userRepository.AddUserAsync(newUser);
+            user = await _userRepository.AddUserAsync(user);
 
             var teacher = new Teacher
             {
@@ -88,54 +180,67 @@ namespace RegistrationManagementAPI.Services.Implementation
                 Specialization = model.Specialization,
                 PhoneNumber = model.PhoneNumber,
                 Email = model.Email,
-                UserId = newUser.UserId
+                UserId = user.UserId
             };
 
             await _teacherRepository.AddTeacherAsync(teacher);
-
-            return "Teacher registered successfully.";
         }
 
-
-        public async Task<(string Token, string Role)> LoginAsync(LoginDTO model)
+         private string GeneratePasswordToken(string password)
         {
-            var user = await _userRepository.GetUserByUserNameAsync(model.UserName);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(model.Password, user.Password))
-                throw new UnauthorizedAccessException("Invalid credentials.");
-
-            var claims = new[]
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim("UserId", user.UserId.ToString())
+                Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Hash, password) }),
+                Expires = DateTime.UtcNow.AddYears(1),
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
 
-            var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(60),
-                signingCredentials: creds);
+        private string DecodePasswordToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var parameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
 
-            return (new JwtSecurityTokenHandler().WriteToken(token), user.Role);
+            var claimsPrincipal = tokenHandler.ValidateToken(token, parameters, out _);
+            var passwordClaim = claimsPrincipal.FindFirst(ClaimTypes.Hash);
+            return passwordClaim?.Value;
         }
 
         public async Task<bool> ChangePasswordAsync(int userId, ChangePasswordDTO model)
         {
+            // Tìm kiếm người dùng theo ID
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
-                throw new KeyNotFoundException("User not found.");
+                throw new Exception("User not found.");
 
-            if (!BCrypt.Net.BCrypt.Verify(model.OldPassword, user.Password))
-                throw new UnauthorizedAccessException("Invalid current password.");
+            // Giải mã mật khẩu cũ từ token lưu trong cơ sở dữ liệu
+            var decodedOldPassword = DecodePasswordToken(user.Password);
 
-            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            // Kiểm tra xem mật khẩu cũ có khớp không
+            if (decodedOldPassword != model.OldPassword)
+                throw new Exception("Old password is incorrect.");
 
+            // Mã hóa mật khẩu mới và cập nhật người dùng
+            user.Password = GeneratePasswordToken(model.NewPassword);
             await _userRepository.UpdateUserAsync(user);
+
             return true;
         }
+
+        
+
     }
 }

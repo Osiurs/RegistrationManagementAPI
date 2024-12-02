@@ -6,7 +6,7 @@ namespace RegistrationManagementAPI.Repositories.Interface
     {
         Task<User> GetUserByIdAsync(int userId);
         Task UpdateUserAsync(User user);
-        Task AddUserAsync(User user);
+        Task<User> AddUserAsync(User user);
         Task<User> GetUserByUserNameAsync(string userName);
     }
 }

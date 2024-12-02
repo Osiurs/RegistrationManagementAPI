@@ -28,6 +28,16 @@ namespace RegistrationManagementAPI.Services.Implementation
             return student;
         }
 
+        public async Task<Student> GetStudentByEmailAsync(string email)
+        {
+            var student = await _studentRepository.GetStudentByEmailAsync(email);
+             if (student == null)
+            {
+                throw new InvalidOperationException("Student not found.");
+            }
+            return student;
+        }
+
         public async Task<Student> AddStudentAsync(Student student)
         {
             if (string.IsNullOrWhiteSpace(student.FirstName) || string.IsNullOrWhiteSpace(student.LastName))
