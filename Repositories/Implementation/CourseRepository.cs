@@ -38,10 +38,11 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             return course;
         }
 
-        public async Task UpdateCourseAsync(Course course)
+        public async Task<Course> UpdateCourseAsync(Course course)
         {
             _context.Courses.Update(course);
             await _context.SaveChangesAsync();
+            return course;
         }
 
         public async Task DeleteCourseAsync(int id)

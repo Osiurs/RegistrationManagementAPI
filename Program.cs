@@ -42,9 +42,6 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 
-builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-builder.Services.AddScoped<IDepartmentService, DepartmentService>();
-
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {

@@ -13,7 +13,7 @@ namespace RegistrationManagementAPI.Services.Implementation
             _reportRepository = reportRepository;
         }
 
-        public async Task<RevenueReportDTO> GenerateRevenueReportAsync()
+        public async Task<object> GenerateRevenueReportAsync()
         {
             return await _reportRepository.GetRevenueReportAsync();
         }

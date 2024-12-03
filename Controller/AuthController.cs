@@ -78,6 +78,69 @@ namespace RegistrationManagementAPI.Controllers
             }
         }
 
+        [Authorize]
+        [HttpPatch("update-student/{id}")]
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDTO model)
+        {
+            try
+            {
+                var result = await _authService.UpdateStudentInfoAsync(id, model);
+                if (!result)
+                    return NotFound(new { message = "Student not found." });
+
+                return Ok(new { message = "Student updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpPatch("update-teacher/{id}")]
+        public async Task<IActionResult> UpdateTeacher(int id, [FromBody] UpdateTeacherDTO model)
+        {
+            try
+            {
+                var result = await _authService.UpdateTeacherInfoAsync(id, model);
+                if (!result)
+                    return NotFound(new { message = "Teacher not found." });
+
+                return Ok(new { message = "Teacher updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("user-details/{id}")]
+        public async Task<IActionResult> GetUserDetails(int id)
+        {
+            try
+            {
+                var userDetails = await _authService.GetUserDetailsAsync(id);
+                return Ok(userDetails);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("all-user-details")]
+        public async Task<IActionResult> GetAllUserDetails()
+        {
+            try
+            {
+                var allUsers = await _authService.GetAllUserDetailsAsync();
+                return Ok(allUsers);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
 
 
     }

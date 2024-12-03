@@ -14,17 +14,27 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<RevenueReportDTO> GetRevenueReportAsync()
+        public async Task<object> GetRevenueReportAsync()
+{
+    var coursesRevenue = await _context.Courses
+        .Select(course => new
         {
-            var totalRevenue = await _context.Payments.SumAsync(p => p.Amount);
-            var totalPayments = await _context.Payments.CountAsync();
+            CourseName = course.CourseName,
+            Revenue = _context.Payments
+                        .Where(payment => payment.CourseId == course.CourseId)
+                        .Sum(payment => payment.Amount) // Giả sử Payment có cột Amount
+        })
+        .ToListAsync();
 
-            return new RevenueReportDTO
-            {
-                TotalRevenue = totalRevenue,
-                TotalPayments = totalPayments
-            };
-        }
+    var totalRevenue = coursesRevenue.Sum(c => c.Revenue);
+
+    return new
+    {
+        TotalRevenue = totalRevenue,
+        Courses = coursesRevenue
+    };
+}
+
 
         public async Task<RegistrationReportDTO> GetRegistrationReportAsync()
         {

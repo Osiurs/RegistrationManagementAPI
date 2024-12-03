@@ -13,5 +13,8 @@ namespace RegistrationManagementAPI.Entities
 
         public int RegistrationId { get; set; }
         public Registration Registration { get; set; }
+
+        public int CourseId { get; set; } // Liên kết với Course
+        public Course Course { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
@@ -7,10 +8,12 @@ namespace RegistrationManagementAPI.Services.Implementation
     public class CourseService : ICourseService
     {
         private readonly ICourseRepository _courseRepository;
+        private readonly ITeacherRepository _teacherRepository;
 
-        public CourseService(ICourseRepository courseRepository)
+        public CourseService(ICourseRepository courseRepository, ITeacherRepository teacherRepository)
         {
             _courseRepository = courseRepository;
+            _teacherRepository = teacherRepository;
         }
 
         public async Task<IEnumerable<Course>> GetAllCoursesAsync()
@@ -33,22 +36,39 @@ namespace RegistrationManagementAPI.Services.Implementation
             return await _courseRepository.GetCoursesByTeacherIdAsync(teacherId);
         }
 
-        public async Task<Course> AddCourseAsync(Course course)
-        {
-            if (course.StartDate >= course.EndDate)
-            {
-                throw new ArgumentException("Start date must be earlier than end date.");
-            }
+        public async Task<CourseDTO> AddCourseAsync(CourseDTO courseDto)
+{
+    if (courseDto == null)
+        throw new ArgumentNullException(nameof(courseDto), "Course data cannot be null");
 
-            if (course.Price <= 0)
-            {
-                throw new ArgumentException("Price must be greater than zero.");
-            }
+    // Kiểm tra xem TeacherId có tồn tại hay không
+    var teacher = await _teacherRepository.GetTeacherByTeacherIdAsync(courseDto.TeacherId);
+    if (teacher == null)
+        throw new Exception($"Teacher with ID {courseDto.TeacherId} does not exist");
 
-            return await _courseRepository.AddCourseAsync(course);
-        }
+    var course = new Course
+    {
+        CourseName = courseDto.CourseName,
+        Price = courseDto.Price,
+        StartDate = courseDto.StartDate,
+        EndDate = courseDto.EndDate,
+        TeacherId = courseDto.TeacherId // Bắt buộc phải có
+    };
 
-        public async Task UpdateCourseAsync(int id, Course course)
+    var createdCourse = await _courseRepository.AddCourseAsync(course);
+
+    return new CourseDTO
+    {
+        CourseName = createdCourse.CourseName,
+        Price = createdCourse.Price,
+        StartDate = createdCourse.StartDate,
+        EndDate = createdCourse.EndDate,
+        TeacherId = createdCourse.TeacherId
+    };
+}
+
+
+        public async Task<CourseDTO> UpdateCourseAsync(int id, CourseDTO courseDto)
         {
             var existingCourse = await _courseRepository.GetCourseByIdAsync(id);
             if (existingCourse == null)
@@ -56,14 +76,22 @@ namespace RegistrationManagementAPI.Services.Implementation
                 throw new InvalidOperationException("Course not found.");
             }
 
-            existingCourse.CourseName = course.CourseName;
-            existingCourse.Description = course.Description;
-            existingCourse.StartDate = course.StartDate;
-            existingCourse.EndDate = course.EndDate;
-            existingCourse.Price = course.Price;
-            existingCourse.TeacherId = course.TeacherId;
+            existingCourse.CourseName = courseDto.CourseName;
+            existingCourse.Description = courseDto.Description;
+            existingCourse.StartDate = courseDto.StartDate;
+            existingCourse.EndDate = courseDto.EndDate;
+            existingCourse.Price = courseDto.Price;
+            existingCourse.TeacherId = courseDto.TeacherId;
 
             await _courseRepository.UpdateCourseAsync(existingCourse);
+            return new CourseDTO
+    {
+        CourseName = existingCourse.CourseName,
+        Price = existingCourse.Price,
+        StartDate = existingCourse.StartDate,
+        EndDate = existingCourse.EndDate,
+        TeacherId = existingCourse.TeacherId
+    };
         }
 
         public async Task DeleteCourseAsync(int id)

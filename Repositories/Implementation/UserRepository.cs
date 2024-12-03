@@ -13,6 +13,10 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         {
             _context = context;
         }
+        public async Task<List<User>> GetAllUsersAsync()
+        {
+            return await _context.Users.ToListAsync();
+        }
 
         public async Task<User> GetUserByUserNameAsync(string userName)
         {

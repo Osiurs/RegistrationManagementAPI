@@ -1,5 +1,5 @@
 using RegistrationManagementAPI.Entities;
-
+using RegistrationManagementAPI.DTOs;
 namespace RegistrationManagementAPI.Services.Interface
 {
     public interface ICourseService
@@ -7,8 +7,8 @@ namespace RegistrationManagementAPI.Services.Interface
         Task<IEnumerable<Course>> GetAllCoursesAsync();
         Task<Course> GetCourseByIdAsync(int id);
         Task<IEnumerable<Course>> GetCoursesByTeacherIdAsync(int teacherId);
-        Task<Course> AddCourseAsync(Course course);
-        Task UpdateCourseAsync(int id, Course course);
+        Task<CourseDTO> AddCourseAsync(CourseDTO courseDto);
+        Task<CourseDTO> UpdateCourseAsync(int id, CourseDTO courseDto);
         Task DeleteCourseAsync(int id);
     }
 }

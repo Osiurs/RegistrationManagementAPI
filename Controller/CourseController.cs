@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
@@ -37,25 +38,25 @@ namespace RegistrationManagementAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCourse([FromBody] Course course)
+        public async Task<IActionResult> AddCourse([FromBody] CourseDTO courseDto)
         {
-            try
-            {
-                var newCourse = await _courseService.AddCourseAsync(course);
-                return CreatedAtAction(nameof(GetCourseById), new { id = newCourse.CourseId }, newCourse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (courseDto.TeacherId <= 0)
+                return BadRequest(new { message = "TeacherId is required and must be greater than 0." });
+
+            var createdCourse = await _courseService.AddCourseAsync(courseDto);
+            return CreatedAtAction(nameof(GetCourseById), new { id = createdCourse.CourseName }, createdCourse);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCourse(int id, [FromBody] Course course)
+        public async Task<IActionResult> UpdateCourse(int id, [FromBody] CourseDTO courseDto)
         {
             try
             {
-                await _courseService.UpdateCourseAsync(id, course);
+                await _courseService.UpdateCourseAsync(id, courseDto);
                 return NoContent();
             }
             catch (InvalidOperationException ex)

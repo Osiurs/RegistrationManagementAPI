@@ -13,6 +13,10 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         {
             _context = context;
         }
+         public async Task<IEnumerable<Teacher>> GetAllTeachersAsync()
+        {
+            return await _context.Teachers.ToListAsync();
+        }
 
         public async Task AddTeacherAsync(Teacher teacher)
         {
@@ -26,6 +30,19 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         public async Task<Teacher> GetTeacherByUserIdAsync(int userId)
         {
             return await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+        }
+
+        public async Task<Teacher> GetTeacherByTeacherIdAsync(int teacherId)
+        {
+            return await _context.Teachers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.TeacherId == teacherId);
+        }
+
+            public async Task UpdateTeacherAsync(Teacher teacher)
+        {
+            _context.Teachers.Update(teacher);
+            await _context.SaveChangesAsync();
         }
 
     }
