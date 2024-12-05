@@ -4,8 +4,8 @@ namespace RegistrationManagementAPI.Services.Interface
 {
     public interface IMessageService
     {
-        Task SendMessageAsync(MessageDTO message);
-        Task<IEnumerable<MessageDTO>> GetStudentMessagesAsync(int studentId);
+        Task<MessageDTO> SendMessageAsync(int senderId, int receiverId, string content);
+        Task<IEnumerable<MessageDTO>> GetMessagesByUserIdAsync(int userId);
     }
 
 }

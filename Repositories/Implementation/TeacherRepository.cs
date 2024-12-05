@@ -45,5 +45,14 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             await _context.SaveChangesAsync();
         }
 
-    }
+        public async Task DeleteTeacherAsync(int teacherId)
+        {
+            var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.TeacherId == teacherId);
+            if (teacher != null)
+            {
+                _context.Teachers.Remove(teacher);
+                await _context.SaveChangesAsync();
+            }
+        }
+        }
 }

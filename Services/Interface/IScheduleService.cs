@@ -4,6 +4,8 @@ namespace RegistrationManagementAPI.Services.Interface
 {
     public interface IScheduleService
     {
-        Task<IEnumerable<ScheduleDTO>> GetStudentScheduleAsync(int studentId);
+        Task<IEnumerable<SetScheduleDTO>> GetStudentScheduleAsync(int studentId);
+        Task SetScheduleAsync(SetScheduleRequestDTO request);
+        Task UpdateScheduleAsync(int scheduleId, SetScheduleRequestDTO request);
     }
 }

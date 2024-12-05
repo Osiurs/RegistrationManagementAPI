@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace RegistrationManagementAPI.Entities
 {
     public class Classroom
@@ -6,8 +7,8 @@ namespace RegistrationManagementAPI.Entities
         public string RoomNumber { get; set; }
         public int Capacity { get; set; }
         public string Equipment { get; set; }  // Ví dụ: "Máy lạnh, Máy chiếu"
-
         // Relationships
-        public ICollection<Schedule> Schedules { get; set; } // Liên kết với các buổi học trong phòng này
+        [JsonIgnore]
+        public ICollection<Schedule>? Schedules { get; set; } // Liên kết với các buổi học trong phòng này
     }
 }

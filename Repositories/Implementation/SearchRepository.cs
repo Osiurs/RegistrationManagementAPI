@@ -20,9 +20,13 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                 .Where(s => EF.Functions.Like(s.FirstName, $"%{query}%") ||
                             EF.Functions.Like(s.LastName, $"%{query}%") ||
                             EF.Functions.Like(s.Email, $"%{query}%") ||
-                            EF.Functions.Like(s.PhoneNumber, $"%{query}%"))
+                            EF.Functions.Like(s.PhoneNumber, $"%{query}%") ||
+                            EF.Functions.Like(s.Address, $"%{query}%") ||
+                            EF.Functions.Like(s.ParentName, $"%{query}%") ||
+                            EF.Functions.Like(s.ParentPhoneNumber, $"%{query}%"))
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<Course>> SearchCoursesAsync(string query)
         {

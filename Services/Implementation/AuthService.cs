@@ -373,6 +373,43 @@ namespace RegistrationManagementAPI.Services.Implementation
             return userDetails;
         }
 
+        public async Task DeleteUserByIdAsync(int userId)
+        {
+            // Tìm User dựa theo UserId
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new Exception($"User with ID {userId} not found.");
+            }
+
+            // Kiểm tra Role của User
+            if (user.Role == "Student")
+            {
+                // Tìm Student dựa theo UserId và xóa
+                var student = await _studentRepository.GetStudentByUserIdAsync(userId);
+                if (student != null)
+                {
+                    await _studentRepository.DeleteStudentAsync(student.StudentId);
+                }
+            }
+            else if (user.Role == "Teacher")
+            {
+                // Tìm Teacher dựa theo UserId và xóa
+                var teacher = await _teacherRepository.GetTeacherByUserIdAsync(userId);
+                if (teacher != null)
+                {
+                    await _teacherRepository.DeleteTeacherAsync(teacher.TeacherId);
+                }
+            }
+            else
+            {
+                throw new Exception($"Role '{user.Role}' is not supported.");
+            }
+
+            // Xóa User sau khi đã xóa Student hoặc Teacher
+            await _userRepository.DeleteUserAsync(userId);
+        }
+
 
 
     }

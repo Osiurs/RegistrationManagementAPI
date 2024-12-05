@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace RegistrationManagementAPI.Entities
 {
     public class Student
@@ -13,7 +14,7 @@ namespace RegistrationManagementAPI.Entities
         public string ParentPhoneNumber { get; set; }
         public int UserId { get; set; }
         public User User { get; set; }
-
+        [JsonIgnore] 
         public ICollection<Registration> Registrations { get; set; } // Liên kết với bảng Registrations
         public ICollection<Payment> Payments { get; set; } // Liên kết với bảng Payments
     }

@@ -14,17 +14,19 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<IEnumerable<Message>> GetMessagesByStudentIdAsync(int studentId)
+        public async Task<IEnumerable<Message>> GetMessagesByUserIdAsync(int userId)
         {
             return await _context.Messages
-                .Where(m => m.StudentId == studentId)
+                .Where(m => m.ReceiverId == userId)
                 .ToListAsync();
         }
+
 
         public async Task AddMessageAsync(Message message)
         {
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
         }
+
     }
 }

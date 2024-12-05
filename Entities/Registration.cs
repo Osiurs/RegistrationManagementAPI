@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace RegistrationManagementAPI.Entities
 {
     public class Registration
@@ -7,6 +8,7 @@ namespace RegistrationManagementAPI.Entities
         public string Status { get; set; } // "Pending", "Confirmed", "Canceled"
         
         // Relationships
+         [JsonIgnore]
         public int StudentId { get; set; }
         public Student Student { get; set; }
 

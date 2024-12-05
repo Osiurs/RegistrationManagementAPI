@@ -36,13 +36,6 @@ namespace RegistrationManagementAPI.Controllers
             }
         }
 
-        [HttpGet("equipment/{equipment}")]
-        public async Task<IActionResult> GetClassroomsWithEquipment(string equipment)
-        {
-            var classrooms = await _classroomService.GetClassroomsWithEquipmentAsync(equipment);
-            return Ok(classrooms);
-        }
-
         [HttpPost]
         public async Task<IActionResult> AddClassroom([FromBody] Classroom classroom)
         {

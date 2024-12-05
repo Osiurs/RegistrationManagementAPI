@@ -1,11 +1,12 @@
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 
 namespace RegistrationManagementAPI.Services.Interface
 {
     public interface IClassroomService
     {
-        Task<IEnumerable<Classroom>> GetAllClassroomsAsync();
-        Task<Classroom> GetClassroomByIdAsync(int id);
+        Task<List<ClassroomDTO>> GetAllClassroomsAsync();
+        Task<ClassroomDTO> GetClassroomByIdAsync(int id);
         Task<Classroom> AddClassroomAsync(Classroom classroom);
         Task UpdateClassroomAsync(int id, Classroom classroom);
         Task DeleteClassroomAsync(int id);

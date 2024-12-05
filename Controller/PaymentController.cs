@@ -22,19 +22,34 @@ namespace RegistrationManagementAPI.Controllers
             return Ok(payments);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetPaymentById(int id)
+        [HttpGet("{paymentId}")]
+        public async Task<IActionResult> GetPaymentById(int paymentId)
+        {
+            var payment = await _paymentService.GetPaymentByIdAsync(paymentId);
+            if (payment == null)
+                return NotFound(new { message = "Payment not found." });
+
+            return Ok(payment);
+        }
+
+        [HttpGet("by-student/{studentId}")]
+        public async Task<IActionResult> GetPaymentsByStudentId(int studentId)
         {
             try
             {
-                var payment = await _paymentService.GetPaymentByIdAsync(id);
-                return Ok(payment);
+                var payments = await _paymentService.GetPaymentsByStudentIdAsync(studentId);
+                return Ok(payments);
             }
-            catch (InvalidOperationException ex)
+            catch (KeyNotFoundException ex)
             {
                 return NotFound(new { message = ex.Message });
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> AddPayment([FromBody] Payment payment)

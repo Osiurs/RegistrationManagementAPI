@@ -37,38 +37,38 @@ namespace RegistrationManagementAPI.Services.Implementation
         }
 
         public async Task<CourseDTO> AddCourseAsync(CourseDTO courseDto)
-{
-    if (courseDto == null)
-        throw new ArgumentNullException(nameof(courseDto), "Course data cannot be null");
+        {
+            if (courseDto == null)
+                throw new ArgumentNullException(nameof(courseDto), "Course data cannot be null");
 
-    // Kiểm tra xem TeacherId có tồn tại hay không
-    var teacher = await _teacherRepository.GetTeacherByTeacherIdAsync(courseDto.TeacherId);
-    if (teacher == null)
-        throw new Exception($"Teacher with ID {courseDto.TeacherId} does not exist");
+            // Kiểm tra xem TeacherId có tồn tại hay không
+            var teacher = await _teacherRepository.GetTeacherByTeacherIdAsync(courseDto.TeacherId);
+            if (teacher == null)
+                throw new Exception($"Teacher with ID {courseDto.TeacherId} does not exist");
 
-    var course = new Course
-    {
-        CourseName = courseDto.CourseName,
-        Price = courseDto.Price,
-        StartDate = courseDto.StartDate,
-        EndDate = courseDto.EndDate,
-        TeacherId = courseDto.TeacherId // Bắt buộc phải có
-    };
+            var course = new Course
+            {
+                CourseName = courseDto.CourseName,
+                Price = courseDto.Price,
+                StartDate = courseDto.StartDate,
+                EndDate = courseDto.EndDate,
+                TeacherId = courseDto.TeacherId // Bắt buộc phải có
+            };
 
-    var createdCourse = await _courseRepository.AddCourseAsync(course);
+            var createdCourse = await _courseRepository.AddCourseAsync(course);
 
-    return new CourseDTO
-    {
-        CourseName = createdCourse.CourseName,
-        Price = createdCourse.Price,
-        StartDate = createdCourse.StartDate,
-        EndDate = createdCourse.EndDate,
-        TeacherId = createdCourse.TeacherId
-    };
-}
+            return new CourseDTO
+            {
+                CourseName = createdCourse.CourseName,
+                Price = createdCourse.Price,
+                StartDate = createdCourse.StartDate,
+                EndDate = createdCourse.EndDate,
+                TeacherId = createdCourse.TeacherId
+            };
+        }
 
 
-        public async Task<CourseDTO> UpdateCourseAsync(int id, CourseDTO courseDto)
+                public async Task<CourseDTO> UpdateCourseAsync(int id, CourseDTO courseDto)
         {
             var existingCourse = await _courseRepository.GetCourseByIdAsync(id);
             if (existingCourse == null)

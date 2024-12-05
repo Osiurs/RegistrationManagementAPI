@@ -12,5 +12,6 @@ namespace RegistrationManagementAPI.Services.Interface
         Task<bool> UpdateTeacherInfoAsync(int userId, UpdateTeacherDTO dto);
        Task<object> GetUserDetailsAsync(int userId);
        Task<List<object>> GetAllUserDetailsAsync();
+       Task DeleteUserByIdAsync(int userId);
     }
 }

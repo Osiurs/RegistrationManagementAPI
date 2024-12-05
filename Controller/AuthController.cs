@@ -142,6 +142,20 @@ namespace RegistrationManagementAPI.Controllers
             }
         }
 
+        [HttpDelete("delete/{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId)
+        {
+            try
+            {
+                await _authService.DeleteUserByIdAsync(userId);
+                return Ok(new { message = "User deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
 
     }
 }

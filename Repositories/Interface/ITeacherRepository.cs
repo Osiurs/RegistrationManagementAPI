@@ -10,5 +10,6 @@ namespace RegistrationManagementAPI.Repositories.Interface
         Task<Teacher> GetTeacherByUserIdAsync(int userId);
         Task<Teacher> GetTeacherByTeacherIdAsync(int teacherId);
         Task UpdateTeacherAsync(Teacher teacher);
+        Task DeleteTeacherAsync(int teacherId);
     }
 }

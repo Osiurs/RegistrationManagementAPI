@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
@@ -13,12 +14,12 @@ namespace RegistrationManagementAPI.Services.Implementation
             _classroomRepository = classroomRepository;
         }
 
-        public async Task<IEnumerable<Classroom>> GetAllClassroomsAsync()
+        public async Task<List<ClassroomDTO>> GetAllClassroomsAsync()
         {
             return await _classroomRepository.GetAllClassroomsAsync();
         }
 
-        public async Task<Classroom> GetClassroomByIdAsync(int id)
+        public async Task<ClassroomDTO> GetClassroomByIdAsync(int id)
         {
             var classroom = await _classroomRepository.GetClassroomByIdAsync(id);
             if (classroom == null)
@@ -42,20 +43,10 @@ namespace RegistrationManagementAPI.Services.Implementation
 
             return await _classroomRepository.AddClassroomAsync(classroom);
         }
-
+    
         public async Task UpdateClassroomAsync(int id, Classroom classroom)
         {
-            var existingClassroom = await _classroomRepository.GetClassroomByIdAsync(id);
-            if (existingClassroom == null)
-            {
-                throw new InvalidOperationException("Classroom not found.");
-            }
-
-            existingClassroom.RoomNumber = classroom.RoomNumber;
-            existingClassroom.Capacity = classroom.Capacity;
-            existingClassroom.Equipment = classroom.Equipment;
-
-            await _classroomRepository.UpdateClassroomAsync(existingClassroom);
+            await _classroomRepository.UpdateClassroomAsync(id, classroom);
         }
 
         public async Task DeleteClassroomAsync(int id)

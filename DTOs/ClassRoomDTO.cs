@@ -6,5 +6,6 @@ namespace RegistrationManagementAPI.DTOs
         public string RoomNumber { get; set; }
         public int Capacity { get; set; }
         public string Equipment { get; set; }
+        public List<ScheduleDTO> Schedules { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
@@ -13,15 +14,23 @@ namespace RegistrationManagementAPI.Services.Implementation
             _paymentRepository = paymentRepository;
         }
 
-        public async Task<IEnumerable<Payment>> GetAllPaymentsAsync()
+        public async Task<List<PaymentDTO>> GetAllPaymentsAsync()
         {
             return await _paymentRepository.GetAllPaymentsAsync();
         }
 
-        public async Task<IEnumerable<Payment>> GetPaymentsByStudentIdAsync(int studentId)
+
+        public async Task<IEnumerable<PaymentDTO>> GetPaymentsByStudentIdAsync(int studentId)
         {
-            return await _paymentRepository.GetPaymentsByStudentIdAsync(studentId);
+            var payments = await _paymentRepository.GetPaymentsByStudentIdAsync(studentId);
+            if (payments == null || !payments.Any())
+            {
+                throw new KeyNotFoundException($"No payments found for student with ID {studentId}");
+            }
+
+            return payments;
         }
+
 
         public async Task<IEnumerable<Payment>> GetPaymentsByRegistrationIdAsync(int registrationId)
         {

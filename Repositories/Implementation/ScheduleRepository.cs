@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 
 namespace RegistrationManagementAPI.Repositories.Implementation
@@ -14,13 +15,39 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<IEnumerable<Schedule>> GetSchedulesByStudentIdAsync(int studentId)
+        public async Task<IEnumerable<SetScheduleDTO>> GetStudentSchedulesAsync(int studentId)
         {
             return await _context.Schedules
-                .Include(s => s.Course)               // Bao gồm thông tin khóa học
-                .Include(s => s.Classroom)            // Bao gồm thông tin phòng học
-                .Where(s => s.Course.Registrations.Any(r => r.StudentId == studentId))
+                .Where(s => s.StudentId == studentId) // Kiểm tra điều kiện StudentId
+                .Select(s => new SetScheduleDTO
+                {
+                    ScheduleId = s.ScheduleId,
+                    StartTime = s.StartTime,
+                    EndTime = s.EndTime,
+                    CourseName = s.Course.CourseName,
+                    TeacherName = $"{s.Teacher.FirstName} {s.Teacher.LastName}",
+                    Classroom = $"{s.Classroom.RoomNumber} - {s.Classroom.Equipment}",
+                    RoomNumber = s.Classroom.RoomNumber
+                })
                 .ToListAsync();
+        }
+
+        public async Task AddScheduleAsync(Schedule schedule)
+        {
+            await _context.Schedules.AddAsync(schedule);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Schedule> GetScheduleByIdAsync(int scheduleId)
+        {
+            return await _context.Schedules
+                                .FirstOrDefaultAsync(s => s.ScheduleId == scheduleId);
+        }
+
+        public async Task UpdateScheduleAsync(Schedule schedule)
+        {
+            _context.Schedules.Update(schedule);
+            await _context.SaveChangesAsync();
         }
 
     }

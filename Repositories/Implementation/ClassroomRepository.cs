@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 
 namespace RegistrationManagementAPI.Repositories.Implementation
@@ -14,17 +15,46 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<IEnumerable<Classroom>> GetAllClassroomsAsync()
-        {
-            return await _context.Classrooms
-                .Include(c => c.Schedules) // Bao gồm liên kết với Schedules nếu cần
-                .ToListAsync();
-        }
-
-        public async Task<Classroom> GetClassroomByIdAsync(int id)
+        public async Task<List<ClassroomDTO>> GetAllClassroomsAsync()
         {
             return await _context.Classrooms
                 .Include(c => c.Schedules)
+                .ThenInclude(s => s.Course) // Include Course table
+                .Select(c => new ClassroomDTO
+                {
+                    ClassroomId = c.ClassroomId,
+                    RoomNumber = c.RoomNumber,
+                    Capacity = c.Capacity,
+                    Equipment = c.Equipment,
+                    Schedules = c.Schedules.Select(s => new ScheduleDTO
+                    {
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime,
+                        TeacherId = s.TeacherId,
+                        CourseName = s.Course.CourseName // Assuming Course has a "Name" property
+                    }).ToList()
+                }).ToListAsync();
+        }
+
+
+        public async Task<ClassroomDTO> GetClassroomByIdAsync(int id)
+        {
+            return await _context.Classrooms
+                .Include(c => c.Schedules)
+                .ThenInclude(s => s.Course) // Include Course table
+                .Select(c => new ClassroomDTO
+                {
+                    ClassroomId = c.ClassroomId,
+                    RoomNumber = c.RoomNumber,
+                    Capacity = c.Capacity,
+                    Equipment = c.Equipment,
+                    Schedules = c.Schedules.Select(s => new ScheduleDTO
+                    {
+                        StartTime = s.StartTime,
+                        EndTime = s.EndTime,
+                        TeacherId = s.TeacherId,
+                        CourseName = s.Course.CourseName // Assuming Course has a "Name" property
+                    }).ToList()})
                 .FirstOrDefaultAsync(c => c.ClassroomId == id);
         }
 
@@ -34,10 +64,21 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             await _context.SaveChangesAsync();
             return classroom;
         }
-
-        public async Task UpdateClassroomAsync(Classroom classroom)
+        public async Task UpdateClassroomAsync(int id, Classroom classroom)
         {
-            _context.Classrooms.Update(classroom);
+            var existingClassroom = await _context.Classrooms.FindAsync(id);
+            if (existingClassroom == null)
+            {
+                throw new InvalidOperationException("Classroom not found");
+            }
+
+            // Update the fields that you want to change
+            existingClassroom.RoomNumber = classroom.RoomNumber;
+            existingClassroom.Capacity = classroom.Capacity;
+            existingClassroom.Equipment = classroom.Equipment;
+            existingClassroom.Schedules = classroom.Schedules; // Update schedules if needed
+
+            // Save changes to the database
             await _context.SaveChangesAsync();
         }
 

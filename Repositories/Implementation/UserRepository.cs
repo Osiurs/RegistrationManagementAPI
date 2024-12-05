@@ -41,5 +41,14 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             await _context.SaveChangesAsync();
         }
 
+        public async Task DeleteUserAsync(int userId)
+        {
+            var user = await GetUserByIdAsync(userId);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

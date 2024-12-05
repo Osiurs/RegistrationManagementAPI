@@ -2,7 +2,7 @@ using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services.Implementations
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class SearchService : ISearchService
     {
@@ -21,9 +21,15 @@ namespace RegistrationManagementAPI.Services.Implementations
             {
                 StudentId = s.StudentId,
                 FullName = $"{s.FirstName} {s.LastName}",
+                DateOfBirth = s.DateOfBirth,
                 Email = s.Email,
-                PhoneNumber = s.PhoneNumber
+                PhoneNumber = s.PhoneNumber,
+                Address = s.Address,
+                ParentName = s.ParentName,
+                ParentPhoneNumber = s.ParentPhoneNumber
             });
+ 
+
         }
 
         public async Task<IEnumerable<CourseSearchDTO>> SearchCoursesAsync(string query)

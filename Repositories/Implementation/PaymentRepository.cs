@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RegistrationManagementAPI.Data;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Repositories.Interface;
 
 namespace RegistrationManagementAPI.Repositories.Implementation
@@ -14,22 +15,49 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             _context = context;
         }
 
-        public async Task<IEnumerable<Payment>> GetAllPaymentsAsync()
+        public async Task<List<PaymentDTO>> GetAllPaymentsAsync()
         {
             return await _context.Payments
                 .Include(p => p.Student)
                 .Include(p => p.Registration)
+                .Select(p => new PaymentDTO
+                {
+                    PaymentId = p.PaymentId,
+                    Amount = p.Amount,
+                    PaymentDate = p.PaymentDate,
+                    PaymentMethod = p.PaymentMethod,
+                    StudentId = p.StudentId,
+                    StudentName = $"{p.Student.FirstName} {p.Student.LastName}",
+                    StudentEmail = p.Student.Email,
+                    RegistrationId = p.RegistrationId,
+                    RegistrationStatus = p.Registration.Status,
+                    CourseId = p.CourseId
+                })
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Payment>> GetPaymentsByStudentIdAsync(int studentId)
+        public async Task<IEnumerable<PaymentDTO>> GetPaymentsByStudentIdAsync(int studentId)
         {
             return await _context.Payments
-                .Where(p => p.StudentId == studentId)
                 .Include(p => p.Student)
                 .Include(p => p.Registration)
+                .Where(p => p.StudentId == studentId)
+                .Select(p => new PaymentDTO
+                {
+                    PaymentId = p.PaymentId,
+                    Amount = p.Amount,
+                    PaymentDate = p.PaymentDate,
+                    PaymentMethod = p.PaymentMethod,
+                    StudentId = p.StudentId,
+                    StudentName = $"{p.Student.FirstName} {p.Student.LastName}",
+                    StudentEmail = p.Student.Email,
+                    RegistrationId = p.RegistrationId,
+                    RegistrationStatus = p.Registration.Status,
+                    CourseId = p.CourseId
+                })
                 .ToListAsync();
         }
+
 
         public async Task<IEnumerable<Payment>> GetPaymentsByRegistrationIdAsync(int registrationId)
         {

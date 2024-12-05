@@ -3,52 +3,67 @@ using RegistrationManagementAPI.Entities;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
-namespace RegistrationManagementAPI.Services.Implementations
+namespace RegistrationManagementAPI.Services.Implementation
 {
     public class MessageService : IMessageService
     {
         private readonly IMessageRepository _messageRepository;
+        private readonly IUserRepository _userRepository;
 
-        public MessageService(IMessageRepository messageRepository)
+        public MessageService(IMessageRepository messageRepository, IUserRepository userRepository)
         {
             _messageRepository = messageRepository;
+            _userRepository = userRepository;
         }
 
-        public async Task SendMessageAsync(MessageDTO messageDTO)
+        public async Task<MessageDTO> SendMessageAsync(int senderId, int receiverId, string content)
         {
-            if (string.IsNullOrWhiteSpace(messageDTO.Title))
-            {
-                throw new ArgumentException("Message title cannot be empty.");
-            }
+            // Kiểm tra người gửi và người nhận
+            var sender = await _userRepository.GetUserByIdAsync(senderId);
+            var receiver = await _userRepository.GetUserByIdAsync(receiverId);
 
-            if (string.IsNullOrWhiteSpace(messageDTO.Content))
-            {
-                throw new ArgumentException("Message content cannot be empty.");
-            }
+            if (sender == null)
+                throw new ArgumentException("Sender does not exist.");
+            if (receiver == null)
+                throw new ArgumentException("Receiver does not exist.");
 
+            // Tạo đối tượng Message mới
             var message = new Message
             {
-                StudentId = messageDTO.StudentId,
-                Title = messageDTO.Title,
-                Content = messageDTO.Content,
+                SenderId = senderId,
+                ReceiverId = receiverId,
+                Content = content,
                 SentDate = DateTime.UtcNow
             };
 
+            // Lưu vào cơ sở dữ liệu qua repository
             await _messageRepository.AddMessageAsync(message);
+
+            return new MessageDTO
+            {
+                MessageId = message.MessageId,
+                SenderId = message.SenderId,
+                ReceiverId = message.ReceiverId,
+                Content = message.Content,
+                SentDate = message.SentDate
+            };
         }
 
-        public async Task<IEnumerable<MessageDTO>> GetStudentMessagesAsync(int studentId)
+
+
+        public async Task<IEnumerable<MessageDTO>> GetMessagesByUserIdAsync(int userId)
         {
-            var messages = await _messageRepository.GetMessagesByStudentIdAsync(studentId);
+            var messages = await _messageRepository.GetMessagesByUserIdAsync(userId);
 
             return messages.Select(m => new MessageDTO
             {
                 MessageId = m.MessageId,
-                StudentId = m.StudentId,
-                Title = m.Title,
+                SenderId = m.SenderId,
+                ReceiverId = m.ReceiverId,
                 Content = m.Content,
                 SentDate = m.SentDate
-            });
+            }).ToList();
         }
+
     }
 }

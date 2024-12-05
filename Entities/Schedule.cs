@@ -16,5 +16,9 @@ namespace RegistrationManagementAPI.Entities
         public int TeacherId { get; set; }
         public Teacher Teacher { get; set; }
 
+         // Thêm StudentId nếu cần thiết
+        public int? StudentId { get; set; } // nullable nếu không bắt buộc
+        public Student Student { get; set; }
+
     }
 }

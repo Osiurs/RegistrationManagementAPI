@@ -42,6 +42,14 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
+builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
+
+builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -61,6 +69,19 @@ builder.Services.AddAuthentication(options =>
 
 // Add controllers and other services
 builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+    });
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 
 // Add Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();

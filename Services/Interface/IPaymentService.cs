@@ -1,11 +1,12 @@
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 
 namespace RegistrationManagementAPI.Services.Interface
 {
     public interface IPaymentService
     {
-        Task<IEnumerable<Payment>> GetAllPaymentsAsync();
-        Task<IEnumerable<Payment>> GetPaymentsByStudentIdAsync(int studentId);
+        Task<List<PaymentDTO>> GetAllPaymentsAsync();
+        Task<IEnumerable<PaymentDTO>> GetPaymentsByStudentIdAsync(int studentId);
         Task<IEnumerable<Payment>> GetPaymentsByRegistrationIdAsync(int registrationId);
         Task<Payment> GetPaymentByIdAsync(int id);
         Task<Payment> AddPaymentAsync(Payment payment);

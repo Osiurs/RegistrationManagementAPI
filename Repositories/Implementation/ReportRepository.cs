@@ -22,7 +22,7 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             CourseName = course.CourseName,
             Revenue = _context.Payments
                         .Where(payment => payment.CourseId == course.CourseId)
-                        .Sum(payment => payment.Amount) // Giả sử Payment có cột Amount
+                        .Sum(payment => payment.Amount)
         })
         .ToListAsync();
 
