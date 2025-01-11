@@ -4,7 +4,7 @@ namespace RegistrationManagementAPI.Entities
     {
         public int AttendanceId { get; set; }
         public DateTime AttendanceDate { get; set; }
-        public bool IsPresent { get; set; }
+        public string Status { get; set; }
 
         // Relationships
         public int StudentId { get; set; }

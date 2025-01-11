@@ -51,17 +51,31 @@ namespace RegistrationManagementAPI.Services.Implementation
                 throw new Exception("Invalid username or password.");
             }
 
-            // Lấy thông tin FirstName và LastName từ Student hoặc Teacher
-            string firstName = null;
-            string lastName = null;
+            // Tạo token
+            var token = GenerateToken(user);
 
+            // Khởi tạo biến trả về
+            object response;
+
+            // Xử lý theo vai trò của người dùng
             if (user.Role == "Student")
             {
                 var student = await _studentRepository.GetStudentByUserIdAsync(user.UserId);
                 if (student != null)
                 {
-                    firstName = student.FirstName;
-                    lastName = student.LastName;
+                    response = new
+                    {
+                        UserID = user.UserId,
+                        UserName = user.UserName,
+                        FirstName = student.FirstName,
+                        LastName = student.LastName,
+                        Role = user.Role,
+                        Token = token
+                    };
+                }
+                else
+                {
+                    throw new Exception("Student details not found.");
                 }
             }
             else if (user.Role == "Teacher")
@@ -69,33 +83,54 @@ namespace RegistrationManagementAPI.Services.Implementation
                 var teacher = await _teacherRepository.GetTeacherByUserIdAsync(user.UserId);
                 if (teacher != null)
                 {
-                    firstName = teacher.FirstName;
-                    lastName = teacher.LastName;
+                    response = new
+                    {
+                        UserID = user.UserId,
+                        UserName = user.UserName,
+                        FirstName = teacher.FirstName,
+                        LastName = teacher.LastName,
+                        Role = user.Role,
+                        Token = token
+                    };
+                }
+                else
+                {
+                    throw new Exception("Teacher details not found.");
                 }
             }
-            var token = GenerateToken(user);
+            else if (user.Role == "Admin")
+            {
+                // Admin có quyền thay đổi mọi thông tin của user
+                response = new
+                {
+                    UserID = user.UserId,
+                    UserName = user.UserName,
+                    Role = user.Role,
+                    Token = token
+                };
+            }
+            else
+            {
+                throw new Exception("Invalid user role.");
+            }
 
             // Trả về dữ liệu cần thiết
-            return new
-            {
-                UserID = user.UserId,
-                FirstName = firstName,
-                LastName = lastName,
-                Role = user.Role,
-                Token = token
-            };
+            return response;
         }
+
+
 
         private string GenerateToken(User user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]); // Khóa phải đủ dài
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[]
+                Subject = new ClaimsIdentity(new[] 
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Role, user.Role)
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()) // Thêm ID người dùng vào token
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(
@@ -105,6 +140,7 @@ namespace RegistrationManagementAPI.Services.Implementation
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
 
 
 
@@ -187,6 +223,18 @@ namespace RegistrationManagementAPI.Services.Implementation
             await _teacherRepository.AddTeacherAsync(teacher);
         }
 
+        public async Task RegisterAdminAsync(RegisterAdminDTO model)
+        {
+            var hashedPassword = GeneratePasswordToken(model.Password);
+            var user = new User
+            {
+                UserName = model.UserName,
+                Password = hashedPassword,
+                Role = "Admin"
+            };
+            await _userRepository.AddUserAsync(user);
+        }
+
          private string GeneratePasswordToken(string password)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -241,17 +289,19 @@ namespace RegistrationManagementAPI.Services.Implementation
             return true;
         }
 
-        public async Task<bool> UpdateStudentInfoAsync(int userId, UpdateStudentDTO model)
+        public async Task<bool> UpdateStudentInfoAsync(int userId, UpdateStudentDTO model, int currentUserId)
         {
-            var student = await _studentRepository.GetStudentByUserIdAsync(userId);
-            var user = await _userRepository.GetUserByIdAsync(userId);
-            var existingStudent = await _studentRepository.GetStudentByEmailAsync(model.Email);
-            if (existingStudent != null)
+            var user = await _userRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || (user.Role != "Admin" && user.UserId != userId))
             {
-                throw new Exception("A student with this email already exists.");
+                throw new Exception("You do not have permission to update this user.");
             }
+
+            var student = await _studentRepository.GetStudentByUserIdAsync(userId);
             if (student == null) return false;
-            if (!string.IsNullOrEmpty(model.UserName))user.UserName = model.UserName;
+
+            // Cập nhật thông tin của học sinh
+            if (!string.IsNullOrEmpty(model.UserName)) user.UserName = model.UserName;
             if (!string.IsNullOrEmpty(model.FirstName)) student.FirstName = model.FirstName;
             if (!string.IsNullOrEmpty(model.LastName)) student.LastName = model.LastName;
             if (model.DateOfBirth.HasValue) student.DateOfBirth = model.DateOfBirth.Value;
@@ -266,21 +316,31 @@ namespace RegistrationManagementAPI.Services.Implementation
             return true;
         }
 
-        public async Task<bool> UpdateTeacherInfoAsync(int userId, UpdateTeacherDTO model)
+        public async Task<bool> UpdateTeacherInfoAsync(int userId, UpdateTeacherDTO model, int currentUserId)
         {
+            
+            var user = await _userRepository.GetUserByIdAsync(currentUserId);
+            if (user == null || (user.Role != "Admin" && user.UserId != userId))
+            {
+                throw new Exception("You do not have permission to update this user.");
+            }
+
             var teacher = await _teacherRepository.GetTeacherByUserIdAsync(userId);
-            var user = await _userRepository.GetUserByIdAsync(userId);
             if (teacher == null) return false;
-            if (!string.IsNullOrEmpty(model.UserName))user.UserName = model.UserName;
+
+            // Cập nhật thông tin của giáo viên
+            if (!string.IsNullOrEmpty(model.UserName)) user.UserName = model.UserName;
             if (!string.IsNullOrEmpty(model.FirstName)) teacher.FirstName = model.FirstName;
             if (!string.IsNullOrEmpty(model.LastName)) teacher.LastName = model.LastName;
             if (!string.IsNullOrEmpty(model.PhoneNumber)) teacher.PhoneNumber = model.PhoneNumber;
             if (!string.IsNullOrEmpty(model.Email)) teacher.Email = model.Email;
             if (!string.IsNullOrEmpty(model.Specialization)) teacher.Specialization = model.Specialization;
+
             await _userRepository.UpdateUserAsync(user);
             await _teacherRepository.UpdateTeacherAsync(teacher);
             return true;
         }
+
 
         public async Task<object> GetUserDetailsAsync(int userId)
         {

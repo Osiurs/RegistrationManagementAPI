@@ -4,7 +4,7 @@ namespace RegistrationManagementAPI.DTOs
     {
         public int PaymentId { get; set; }
         public decimal Amount { get; set; }
-        public DateTime PaymentDate { get; set; }
+        public DateTime? PaymentDate { get; set; }
         public string PaymentMethod { get; set; }
         public int StudentId { get; set; }
         public string StudentName { get; set; } // Kết hợp FirstName + LastName

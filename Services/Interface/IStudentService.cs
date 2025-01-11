@@ -10,5 +10,6 @@ namespace RegistrationManagementAPI.Services.Interface
         Task<Student> AddStudentAsync(Student student);
         Task UpdateStudentAsync(int id, Student student);
         Task DeleteStudentAsync(int id);
+        List<Student> GetStudentsNotRegisteredInCourse(int courseId);
     }
 }

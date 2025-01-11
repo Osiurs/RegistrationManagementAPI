@@ -14,68 +14,6 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         {
             _context = context;
         }
-
-        public async Task<List<PaymentDTO>> GetAllPaymentsAsync()
-        {
-            return await _context.Payments
-                .Include(p => p.Student)
-                .Include(p => p.Registration)
-                .Select(p => new PaymentDTO
-                {
-                    PaymentId = p.PaymentId,
-                    Amount = p.Amount,
-                    PaymentDate = p.PaymentDate,
-                    PaymentMethod = p.PaymentMethod,
-                    StudentId = p.StudentId,
-                    StudentName = $"{p.Student.FirstName} {p.Student.LastName}",
-                    StudentEmail = p.Student.Email,
-                    RegistrationId = p.RegistrationId,
-                    RegistrationStatus = p.Registration.Status,
-                    CourseId = p.CourseId
-                })
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<PaymentDTO>> GetPaymentsByStudentIdAsync(int studentId)
-        {
-            return await _context.Payments
-                .Include(p => p.Student)
-                .Include(p => p.Registration)
-                .Where(p => p.StudentId == studentId)
-                .Select(p => new PaymentDTO
-                {
-                    PaymentId = p.PaymentId,
-                    Amount = p.Amount,
-                    PaymentDate = p.PaymentDate,
-                    PaymentMethod = p.PaymentMethod,
-                    StudentId = p.StudentId,
-                    StudentName = $"{p.Student.FirstName} {p.Student.LastName}",
-                    StudentEmail = p.Student.Email,
-                    RegistrationId = p.RegistrationId,
-                    RegistrationStatus = p.Registration.Status,
-                    CourseId = p.CourseId
-                })
-                .ToListAsync();
-        }
-
-
-        public async Task<IEnumerable<Payment>> GetPaymentsByRegistrationIdAsync(int registrationId)
-        {
-            return await _context.Payments
-                .Where(p => p.RegistrationId == registrationId)
-                .Include(p => p.Student)
-                .Include(p => p.Registration)
-                .ToListAsync();
-        }
-
-        public async Task<Payment> GetPaymentByIdAsync(int id)
-        {
-            return await _context.Payments
-                .Include(p => p.Student)
-                .Include(p => p.Registration)
-                .FirstOrDefaultAsync(p => p.PaymentId == id);
-        }
-
         public async Task<Payment> AddPaymentAsync(Payment payment)
         {
             _context.Payments.Add(payment);
@@ -98,5 +36,6 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                 await _context.SaveChangesAsync();
             }
         }
+
     }
 }

@@ -6,5 +6,7 @@ namespace RegistrationManagementAPI.Repositories.Interface
     {
         Task<IEnumerable<Student>> SearchStudentsAsync(string query);
         Task<IEnumerable<Course>> SearchCoursesAsync(string query);
+        Task<IEnumerable<Teacher>> SearchTeachersAsync(string query);
+
     }
 }

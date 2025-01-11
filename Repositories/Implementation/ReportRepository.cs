@@ -15,25 +15,17 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         }
 
         public async Task<object> GetRevenueReportAsync()
-{
-    var coursesRevenue = await _context.Courses
-        .Select(course => new
         {
-            CourseName = course.CourseName,
-            Revenue = _context.Payments
-                        .Where(payment => payment.CourseId == course.CourseId)
-                        .Sum(payment => payment.Amount)
-        })
-        .ToListAsync();
+            // Tính tổng toàn bộ số tiền (Amount) trong bảng Payment
+            var totalRevenue = await _context.Payments.SumAsync(payment => payment.Amount);
 
-    var totalRevenue = coursesRevenue.Sum(c => c.Revenue);
+            // Trả về kết quả chỉ chứa TotalRevenue
+            return new
+            {
+                TotalRevenue = totalRevenue
+            };
+        }
 
-    return new
-    {
-        TotalRevenue = totalRevenue,
-        Courses = coursesRevenue
-    };
-}
 
 
         public async Task<RegistrationReportDTO> GetRegistrationReportAsync()
@@ -60,21 +52,6 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                     TotalTuition = s.Registrations.Sum(r => r.Course.Price),
                     PaidAmount = s.Payments.Sum(p => p.Amount),
                     RemainingAmount = s.Registrations.Sum(r => r.Course.Price) - s.Payments.Sum(p => p.Amount)
-                })
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<SalaryReportDTO>> GetSalaryReportAsync()
-        {
-            return await _context.Teachers
-                .Include(t => t.Courses) // Tải các khóa học liên quan của giáo viên
-                .Select(t => new SalaryReportDTO
-                {
-                    TeacherId = t.TeacherId,
-                    TeacherName = $"{t.FirstName} {t.LastName}",
-                    TotalSalary = t.Courses.Sum(c => c.Price), // Tổng lương từ các khóa học
-                    PaidAmount = 0, // Nếu không có thông tin lương đã trả, mặc định là 0
-                    RemainingAmount = t.Courses.Sum(c => c.Price) // Số tiền còn lại = tổng lương
                 })
                 .ToListAsync();
         }

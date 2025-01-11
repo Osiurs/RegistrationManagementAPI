@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Services.Interface;
+using RegistrationManagementAPI.Entities;
 
 namespace RegistrationManagementAPI.Controllers
 {
@@ -59,6 +61,13 @@ namespace RegistrationManagementAPI.Controllers
             }
         }
 
+        [HttpPost("register/admin")]
+        public async Task<IActionResult> RegisterAdmin([FromBody] RegisterAdminDTO model)
+        {
+            await _authService.RegisterAdminAsync(model);
+            return Created("", new { message = "Admin registered successfully." });
+        }
+
 
         [Authorize]
         [HttpPost("change-password/{id}")]
@@ -84,7 +93,16 @@ namespace RegistrationManagementAPI.Controllers
         {
             try
             {
-                var result = await _authService.UpdateStudentInfoAsync(id, model);
+                // Extract the current user ID from the JWT token
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                int userId;
+                if (!int.TryParse(currentUserId, out userId))
+                {
+                    return Unauthorized(new { message = "Invalid User ID in the token." });
+                }
+
+                // Pass the currentUserId along with the student id to the service
+                var result = await _authService.UpdateStudentInfoAsync(id, model, userId);
                 if (!result)
                     return NotFound(new { message = "Student not found." });
 
@@ -92,7 +110,7 @@ namespace RegistrationManagementAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                throw new Exception("Error updating student info: " + ex.Message);
             }
         }
 
@@ -102,15 +120,41 @@ namespace RegistrationManagementAPI.Controllers
         {
             try
             {
-                var result = await _authService.UpdateTeacherInfoAsync(id, model);
+                // Kiểm tra giá trị của model đầu vào
+                if (model == null)
+                {
+                    return BadRequest(new { message = "Teacher data cannot be null." });
+                }
+
+                // Lấy UserId từ token
+                var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(currentUserId))
+                {
+                    return Unauthorized(new { message = "User ID is missing in the token." });
+                }
+
+                int userId;
+                if (!int.TryParse(currentUserId, out userId))
+                {
+                    return Unauthorized(new { message = "Invalid User ID in the token." });
+                }
+
+                // Gọi service để cập nhật thông tin giáo viên
+                var result = await _authService.UpdateTeacherInfoAsync(id, model, userId);
+
+                // Kiểm tra kết quả cập nhật
                 if (!result)
+                {
                     return NotFound(new { message = "Teacher not found." });
+                }
 
                 return Ok(new { message = "Teacher updated successfully." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                
+                // Trả về lỗi 500 với thông báo chi tiết
+                return StatusCode(500, new { message = "Internal Server Error: " + ex.Message });
             }
         }
 

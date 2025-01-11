@@ -22,6 +22,7 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.UserName == userName);
         }
+        
 
         public async Task<User> GetUserByIdAsync(int userId)
         {

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using RegistrationManagementAPI.Entities;
+using RegistrationManagementAPI.DTOs;
 using RegistrationManagementAPI.Services.Interface;
 
 namespace RegistrationManagementAPI.Controllers
@@ -50,6 +51,20 @@ namespace RegistrationManagementAPI.Controllers
             }
         }
 
+        [HttpPost("register-course")]
+        public async Task<IActionResult> RegisterCourse([FromBody] RegistrationDTO registrationDto)
+        {
+            try
+            {
+                var result = await _registrationService.RegisterCourseAsync(registrationDto);
+                return CreatedAtAction(nameof(RegisterCourse), new { id = result.RegistrationId }, result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRegistration(int id, [FromBody] Registration registration)
         {
@@ -79,6 +94,20 @@ namespace RegistrationManagementAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+        }
+        [HttpPost("update-status/{courseId}")]
+        public async Task<IActionResult> UpdateRegistrationStatus(int courseId)
+        {
+            try
+            {
+                await _registrationService.UpdateRegistrationsStatusToCompletedByCourseIdAsync(courseId);
+                return Ok(new { Message = "Registration status updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { Message = "An error occurred while updating registration status.", Error = ex.Message });
             }
         }
     }

@@ -80,5 +80,10 @@ namespace RegistrationManagementAPI.Services.Implementation
 
             await _studentRepository.DeleteStudentAsync(id);
         }
+
+        public List<Student> GetStudentsNotRegisteredInCourse(int courseId)
+        {
+            return _studentRepository.GetStudentsNotRegisteredInCourse(courseId);
+        }
     }
 }

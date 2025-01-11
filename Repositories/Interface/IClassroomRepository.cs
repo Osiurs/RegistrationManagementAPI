@@ -11,5 +11,6 @@ namespace RegistrationManagementAPI.Repositories.Interface
         Task UpdateClassroomAsync(int id, Classroom classroom);
         Task DeleteClassroomAsync(int id);
         Task<IEnumerable<Classroom>> GetClassroomsWithEquipmentAsync(string equipment); // Tìm phòng có thiết bị cụ thể
+        Task<Classroom> GetClassroomByIdToCheckAsync(int classroomId);
     }
 }

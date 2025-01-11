@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.Entities;
+using  RegistrationManagementAPI.DTOs;
 
 namespace RegistrationManagementAPI.Services.Interface
 {
@@ -11,5 +12,7 @@ namespace RegistrationManagementAPI.Services.Interface
         Task<Registration> AddRegistrationAsync(Registration registration);
         Task UpdateRegistrationAsync(int id, Registration registration);
         Task DeleteRegistrationAsync(int id);
+        Task<RegistrationDTO> RegisterCourseAsync(RegistrationDTO registrationDto);
+        Task UpdateRegistrationsStatusToCompletedByCourseIdAsync(int courseId);
     }
 }

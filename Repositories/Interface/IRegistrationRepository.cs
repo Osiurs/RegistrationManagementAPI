@@ -11,5 +11,9 @@ namespace RegistrationManagementAPI.Repositories.Interface
         Task<Registration> AddRegistrationAsync(Registration registration);
         Task UpdateRegistrationAsync(Registration registration);
         Task DeleteRegistrationAsync(int id);
+        Task<IEnumerable<Registration>> GetPendingRegistrationsByStudentIdAsync(int studentId);
+        Task<Registration> GetPendingRegistrationsByStudentIdAndCourseIdAsync(int studentId, int courseId);
+        Task<IEnumerable<Student>> GetActiveStudentsByCourseIdAsync(int courseId);
+        Task<IEnumerable<Student>> GetCompletedStudentsByCourseIdAsync(int courseId);
     }
 }

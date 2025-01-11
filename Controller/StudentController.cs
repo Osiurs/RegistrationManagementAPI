@@ -81,5 +81,19 @@ namespace RegistrationManagementAPI.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
+        [HttpGet("not-registered/{courseId}")]
+        public IActionResult GetStudentsNotRegisteredInCourse(int courseId)
+        {
+            try
+            {
+                var students = _studentService.GetStudentsNotRegisteredInCourse(courseId);
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while fetching data.", error = ex.Message });
+            }
+        }
     }
 }

@@ -13,6 +13,6 @@ namespace RegistrationManagementAPI.Entities
 
         // Relationships
         public ICollection<Course> Courses { get; set; }
-        public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
+        public ICollection<Salary> Salaries { get; set; } // Lương của giáo viên
     }
 }

@@ -4424,11 +4424,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\Signup System\\RegistrationManagementAPI\\RegistrationManagementAPI.csproj",
+      "projectUniqueName": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\School management\\RegistrationManagementAPI\\RegistrationManagementAPI.csproj",
       "projectName": "RegistrationManagementAPI",
-      "projectPath": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\Signup System\\RegistrationManagementAPI\\RegistrationManagementAPI.csproj",
+      "projectPath": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\School management\\RegistrationManagementAPI\\RegistrationManagementAPI.csproj",
       "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\Signup System\\RegistrationManagementAPI\\obj\\",
+      "outputPath": "C:\\Users\\ADMIN\\OneDrive\\Documents\\Intern\\School management\\RegistrationManagementAPI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

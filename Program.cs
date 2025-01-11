@@ -7,12 +7,24 @@ using RegistrationManagementAPI.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.WebSockets;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Configure CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 // Add DbContext (Entity Framework Core)
 builder.Services.AddDbContext<NVHTNQ10DbContext>(options =>
@@ -32,7 +44,8 @@ builder.Services.AddScoped<IClassroomRepository, ClassroomRepository>();
 builder.Services.AddScoped<IClassroomService, ClassroomService>();
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+builder.Services.AddScoped<ISalaryRepository, SalaryRepository>();
 
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IReportService, ReportService>();
@@ -43,6 +56,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 
 builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IMessageReadStatusRepository, MessageReadStatusRepository>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
@@ -50,6 +64,16 @@ builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
 
 builder.Services.AddScoped<ISearchService, SearchService>();
 builder.Services.AddScoped<ISearchRepository, SearchRepository>();
+
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+
+builder.Services.AddScoped<ITeacherService, TeacherService>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+
+builder.Services.AddScoped<ITuitionFeeRepository, TuitionFeeRepository>();
+
+builder.Services.AddLogging();
 // Configure JWT Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -95,6 +119,8 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 var app = builder.Build();
 
+app.UseCors("AllowAllOrigins");
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -104,10 +130,73 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Add WebSocket Middleware
+app.UseWebSockets();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            await WebSocketHandler.HandleWebSocketConnection(webSocket);
+        }
+        else
+        {
+            context.Response.StatusCode = 400; // Bad Request if not a WebSocket request
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
+
 // Add Authentication and Authorization Middleware
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+// WebSocket Handler Implementation
+public static class WebSocketHandler
+{
+    private static readonly List<WebSocket> ConnectedClients = new();
+
+    public static async Task HandleWebSocketConnection(WebSocket webSocket)
+    {
+        ConnectedClients.Add(webSocket);
+
+        var buffer = new byte[1024 * 4];
+        while (webSocket.State == WebSocketState.Open)
+        {
+            var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            if (result.MessageType == WebSocketMessageType.Text)
+            {
+                var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                await BroadcastMessage(message);
+            }
+            else if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                ConnectedClients.Remove(webSocket);
+            }
+        }
+    }
+
+    private static async Task BroadcastMessage(string message)
+    {
+        foreach (var client in ConnectedClients)
+        {
+            if (client.State == WebSocketState.Open)
+            {
+                var messageBuffer = Encoding.UTF8.GetBytes(message);
+                await client.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text, true, CancellationToken.None);
+            }
+        }
+    }
+}

@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.DTOs;
+using RegistrationManagementAPI.Entities;
 
 namespace RegistrationManagementAPI.Services.Interface
 {
@@ -6,7 +7,11 @@ namespace RegistrationManagementAPI.Services.Interface
     {
         Task<object> GenerateRevenueReportAsync();
         Task<RegistrationReportDTO> GenerateRegistrationReportAsync();
-        Task<IEnumerable<TuitionReportDTO>> GenerateTuitionReportAsync();
-        Task<IEnumerable<SalaryReportDTO>> GenerateSalaryReportAsync();
+        Task<List<TuitionFeeDTO>> GetTuitionFeesReportAsync();
+        Task<List<SalaryDTO>> GetAllSalariesAsync();
+        Task UpdateTuitionFee(int id ,TuitionFee tuitionFee);
+        Task AddPaymentAndUpdateTuitionFeeAsync(int tuitionFeeId, Payment payment);
+        Task UpdateSalaryAsync(int salaryId, SalaryDTO updatedSalary);
+        Task PaySalaryAsync(int salaryId, SalaryDTO updatedSalary);
     }
 }

@@ -7,6 +7,7 @@ namespace RegistrationManagementAPI.Repositories.Interface
         Task<object> GetRevenueReportAsync();
         Task<RegistrationReportDTO> GetRegistrationReportAsync();
         Task<IEnumerable<TuitionReportDTO>> GetTuitionReportAsync();
-        Task<IEnumerable<SalaryReportDTO>> GetSalaryReportAsync();
+        
+
     }
 }

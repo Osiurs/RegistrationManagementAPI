@@ -8,11 +8,12 @@ namespace RegistrationManagementAPI.Entities
         public decimal Price { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        
+        public int ViewCount { get; set; }
+        public string? ImageUrl { get; set; }
         // Relationships
         public int TeacherId { get; set; }
         public Teacher Teacher { get; set; }
         public ICollection<Registration> Registrations { get; set; }
-        public ICollection<Schedule> Schedules { get; set; }  // Thời khóa biểu
+        public ICollection<Schedule> Schedules { get; set; } // Thời khóa biểu (nếu bạn dùng bảng phụ cho lịch học)
     }
 }

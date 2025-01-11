@@ -27,5 +27,18 @@ namespace RegistrationManagementAPI.Controllers
             var courses = await _searchService.SearchCoursesAsync(query);
             return Ok(courses);
         }
+        [HttpGet("teacher")]
+        public async Task<IActionResult> SearchTeachers([FromQuery] string query)
+        {
+            try
+            {
+                var teachers = await _searchService.SearchTeachersAsync(query);
+                return Ok(teachers);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

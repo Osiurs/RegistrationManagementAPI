@@ -17,5 +17,6 @@ namespace RegistrationManagementAPI.Entities
         [JsonIgnore] 
         public ICollection<Registration> Registrations { get; set; } // Liên kết với bảng Registrations
         public ICollection<Payment> Payments { get; set; } // Liên kết với bảng Payments
+        public ICollection<TuitionFee> TuitionFees { get; set; } // Các khoản học phí liên quan đến học sinh
     }
 }

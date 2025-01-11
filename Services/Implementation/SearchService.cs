@@ -1,4 +1,5 @@
 using RegistrationManagementAPI.DTOs;
+using RegistrationManagementAPI.Entities;
 using RegistrationManagementAPI.Repositories.Interface;
 using RegistrationManagementAPI.Services.Interface;
 
@@ -42,8 +43,19 @@ namespace RegistrationManagementAPI.Services.Implementation
                 CourseName = c.CourseName,
                 Description = c.Description,
                 StartDate = c.StartDate,
-                EndDate = c.EndDate
+                EndDate = c.EndDate,
+                ImageUrl = c.ImageUrl
             });
+        }
+        public async Task<IEnumerable<Teacher>> SearchTeachersAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                throw new ArgumentException("Query cannot be null or empty.", nameof(query));
+            }
+
+            var teacher = await _searchRepository.SearchTeachersAsync(query);
+            return teacher;
         }
     }
 }

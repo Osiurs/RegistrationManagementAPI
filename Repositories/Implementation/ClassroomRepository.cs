@@ -18,23 +18,18 @@ namespace RegistrationManagementAPI.Repositories.Implementation
         public async Task<List<ClassroomDTO>> GetAllClassroomsAsync()
         {
             return await _context.Classrooms
-                .Include(c => c.Schedules)
-                .ThenInclude(s => s.Course) // Include Course table
+                .Include(c => c.Schedules) // Include bảng Schedules
+                .ThenInclude(s => s.Course) // Include Course liên quan
+                .ThenInclude(co => co.Teacher) // Include Teacher thông qua Course
                 .Select(c => new ClassroomDTO
                 {
                     ClassroomId = c.ClassroomId,
                     RoomNumber = c.RoomNumber,
                     Capacity = c.Capacity,
                     Equipment = c.Equipment,
-                    Schedules = c.Schedules.Select(s => new ScheduleDTO
-                    {
-                        StartTime = s.StartTime,
-                        EndTime = s.EndTime,
-                        TeacherId = s.TeacherId,
-                        CourseName = s.Course.CourseName // Assuming Course has a "Name" property
-                    }).ToList()
                 }).ToListAsync();
         }
+
 
 
         public async Task<ClassroomDTO> GetClassroomByIdAsync(int id)
@@ -52,11 +47,19 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                     {
                         StartTime = s.StartTime,
                         EndTime = s.EndTime,
-                        TeacherId = s.TeacherId,
                         CourseName = s.Course.CourseName // Assuming Course has a "Name" property
                     }).ToList()})
                 .FirstOrDefaultAsync(c => c.ClassroomId == id);
         }
+
+        public async Task<Classroom> GetClassroomByIdToCheckAsync(int classroomId)
+        {
+            return await _context.Classrooms
+                                .AsNoTracking()
+                                .Where(c => c.ClassroomId == classroomId)
+                                .FirstOrDefaultAsync();
+        }
+
 
         public async Task<Classroom> AddClassroomAsync(Classroom classroom)
         {
@@ -76,8 +79,6 @@ namespace RegistrationManagementAPI.Repositories.Implementation
             existingClassroom.RoomNumber = classroom.RoomNumber;
             existingClassroom.Capacity = classroom.Capacity;
             existingClassroom.Equipment = classroom.Equipment;
-            existingClassroom.Schedules = classroom.Schedules; // Update schedules if needed
-
             // Save changes to the database
             await _context.SaveChangesAsync();
         }

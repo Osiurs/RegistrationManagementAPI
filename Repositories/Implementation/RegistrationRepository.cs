@@ -70,5 +70,41 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<Registration>> GetPendingRegistrationsByStudentIdAsync(int studentId)
+        {
+            return await _context.Registrations
+                .Where(r => r.StudentId == studentId && r.Status == "Pending")
+                .Include(r => r.Student)
+                .Include(r => r.Course)
+                .ToListAsync();
+        }
+        public async Task<Registration> GetPendingRegistrationsByStudentIdAndCourseIdAsync(int studentId, int courseId)
+        {
+            return await _context.Registrations
+                .Where(r => r.StudentId == studentId && r.CourseId == courseId && r.Status == "Pending")
+                .FirstOrDefaultAsync();
+        }
+        // Hàm lấy tất cả học sinh có Status là "Active" theo CourseId
+        public async Task<IEnumerable<Student>> GetActiveStudentsByCourseIdAsync(int courseId)
+        {
+            return await _context.Registrations
+                .Where(r => r.CourseId == courseId && r.Status == "Active")
+                .Include(r => r.Student)  // Include Student data
+                .Select(r => r.Student)   // Select only the Student entity
+                .ToListAsync();
+        }
+
+        // Hàm lấy tất cả học sinh có Status là "Completed" theo CourseId
+        public async Task<IEnumerable<Student>> GetCompletedStudentsByCourseIdAsync(int courseId)
+        {
+            return await _context.Registrations
+                .Where(r => r.CourseId == courseId && r.Status == "Completed")
+                .Include(r => r.Student)  // Include Student data
+                .Select(r => r.Student)   // Select only the Student entity
+                .ToListAsync();
+        }
+
+        
+
     }
 }

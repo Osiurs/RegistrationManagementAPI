@@ -33,11 +33,12 @@ namespace RegistrationManagementAPI.Migrations
                     b.Property<DateTime>("AttendanceDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsPresent")
-                        .HasColumnType("bit");
-
                     b.Property<int>("ScheduleId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
@@ -48,7 +49,7 @@ namespace RegistrationManagementAPI.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("Attendances");
+                    b.ToTable("Attendance", (string)null);
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Classroom", b =>
@@ -87,15 +88,15 @@ namespace RegistrationManagementAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("DepartmentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -106,34 +107,14 @@ namespace RegistrationManagementAPI.Migrations
                     b.Property<int>("TeacherId")
                         .HasColumnType("int");
 
-                    b.HasKey("CourseId");
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
 
-                    b.HasIndex("DepartmentId");
+                    b.HasKey("CourseId");
 
                     b.HasIndex("TeacherId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("RegistrationManagementAPI.Entities.Department", b =>
-                {
-                    b.Property<int>("DepartmentId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DepartmentId"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("DepartmentId");
-
-                    b.ToTable("Departments");
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Message", b =>
@@ -148,21 +129,48 @@ namespace RegistrationManagementAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("SentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("MessageId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("SenderId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("RegistrationManagementAPI.Entities.MessageReadStatus", b =>
+                {
+                    b.Property<int>("MessageReadStatusId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MessageReadStatusId"));
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MessageId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MessageReadStatusId");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MessageReadStatus");
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Payment", b =>
@@ -175,6 +183,9 @@ namespace RegistrationManagementAPI.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
@@ -190,6 +201,8 @@ namespace RegistrationManagementAPI.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("PaymentId");
+
+                    b.HasIndex("CourseId");
 
                     b.HasIndex("RegistrationId");
 
@@ -242,13 +255,16 @@ namespace RegistrationManagementAPI.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime>("ScheduleDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
 
-                    b.Property<int>("TeacherId")
+                    b.Property<int?>("TeacherId")
                         .HasColumnType("int");
 
                     b.HasKey("ScheduleId");
@@ -397,14 +413,10 @@ namespace RegistrationManagementAPI.Migrations
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Course", b =>
                 {
-                    b.HasOne("RegistrationManagementAPI.Entities.Department", null)
-                        .WithMany("Courses")
-                        .HasForeignKey("DepartmentId");
-
                     b.HasOne("RegistrationManagementAPI.Entities.Teacher", "Teacher")
                         .WithMany("Courses")
                         .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Teacher");
@@ -412,17 +424,48 @@ namespace RegistrationManagementAPI.Migrations
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Message", b =>
                 {
-                    b.HasOne("RegistrationManagementAPI.Entities.Student", "Student")
+                    b.HasOne("RegistrationManagementAPI.Entities.Course", "Course")
                         .WithMany()
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("RegistrationManagementAPI.Entities.User", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Student");
+                    b.Navigation("Course");
+
+                    b.Navigation("Sender");
+                });
+
+            modelBuilder.Entity("RegistrationManagementAPI.Entities.MessageReadStatus", b =>
+                {
+                    b.HasOne("RegistrationManagementAPI.Entities.Message", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RegistrationManagementAPI.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Payment", b =>
                 {
+                    b.HasOne("RegistrationManagementAPI.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("RegistrationManagementAPI.Entities.Registration", "Registration")
                         .WithMany("Payments")
                         .HasForeignKey("RegistrationId")
@@ -434,6 +477,8 @@ namespace RegistrationManagementAPI.Migrations
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Course");
 
                     b.Navigation("Registration");
 
@@ -473,17 +518,13 @@ namespace RegistrationManagementAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RegistrationManagementAPI.Entities.Teacher", "Teacher")
+                    b.HasOne("RegistrationManagementAPI.Entities.Teacher", null)
                         .WithMany("Schedules")
-                        .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TeacherId");
 
                     b.Navigation("Classroom");
 
                     b.Navigation("Course");
-
-                    b.Navigation("Teacher");
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Student", b =>
@@ -518,11 +559,6 @@ namespace RegistrationManagementAPI.Migrations
                     b.Navigation("Registrations");
 
                     b.Navigation("Schedules");
-                });
-
-            modelBuilder.Entity("RegistrationManagementAPI.Entities.Department", b =>
-                {
-                    b.Navigation("Courses");
                 });
 
             modelBuilder.Entity("RegistrationManagementAPI.Entities.Registration", b =>

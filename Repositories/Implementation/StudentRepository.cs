@@ -56,5 +56,21 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                 await _context.SaveChangesAsync();
             }
         }
+
+        public List<Student> GetStudentsNotRegisteredInCourse(int courseId)
+        {
+            var registeredStudentIds = _context.Registrations
+                .Where(r => r.CourseId == courseId)
+                .Select(r => r.StudentId)
+                .ToList();
+
+            var studentsNotRegistered = _context.Students
+                .Where(s => !registeredStudentIds.Contains(s.StudentId))
+                .Include(s => s.User) // Load thêm dữ liệu User nếu cần
+                .ToList();
+
+            return studentsNotRegistered;
+        }
+
     }
 }

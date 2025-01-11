@@ -35,5 +35,19 @@ namespace RegistrationManagementAPI.Repositories.Implementation
                             EF.Functions.Like(c.Description, $"%{query}%"))
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Teacher>> SearchTeachersAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                throw new ArgumentException("Query cannot be null or empty.", nameof(query));
+            }
+
+            return await _context.Teachers
+                .Where(t => EF.Functions.Like(t.FirstName, $"%{query}%") ||
+                            EF.Functions.Like(t.LastName, $"%{query}%"))
+                .ToListAsync();
+        }
+
     }
 }

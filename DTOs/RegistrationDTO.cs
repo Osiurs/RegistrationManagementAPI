@@ -7,5 +7,6 @@ namespace RegistrationManagementAPI.DTOs
         public string Status { get; set; }
         public int StudentId { get; set; }
         public int CourseId { get; set; }
+        public int UserId { get; set; }
     }
 }
